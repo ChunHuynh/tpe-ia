@@ -1,0 +1,14 @@
+# OS Metadata
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Common Temporary Files
+*.swp
+*.bak
+*~
+
+# Logs
+*.log
