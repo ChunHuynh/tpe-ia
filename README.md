@@ -42,4 +42,4 @@ npm run dev    # → http://localhost:4321
 
 ## 📄 Design Documentation
 
-The UI/UX design system reference is in [`docs/DESIGN.html`](docs/DESIGN.html)
+The UI/UX design system reference is in [`docs/design.html`](docs/design.html)
