@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DESIGN.md — tpe-ia Design Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #F5F4ED;
+    --ink:      #17181C;
+    --accent:   #D97757;
+    --muted:    rgba(23,24,28,0.45);
+    --border:   rgba(23,24,28,0.12);
+    --surface:  rgba(23,24,28,0.04);
+    --surface2: rgba(23,24,28,0.07);
+    --font-serif: 'Libre Baskerville', Georgia, serif;
+    --font-ui:    'Montserrat', sans-serif;
+    --radius: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .doc-header {
+    border-bottom: 1px solid var(--border);
+    padding: 48px 64px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .doc-header h1 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .doc-header p {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .doc-header a { color: var(--accent); text-decoration: none; }
+
+  .doc-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 64px 96px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0 48px;
+    align-items: start;
+  }
+
+  /* Sidebar nav */
+  .doc-nav {
+    position: sticky;
+    top: 32px;
+    margin-top: 40px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .doc-nav::-webkit-scrollbar {width: 3px;}
+  .doc-nav::-webkit-scrollbar-thumb {background: rgba(23,24,28,0.15); border-radius: 2px;}
+
+  .doc-nav-section {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 6px;
+  }
+  .doc-nav-section:first-child { margin-top: 0; }
+  .doc-nav a {
+    display: block;
+    font-size: 12px;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 3px 0;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+  }
+  .doc-nav a:hover { opacity: 1; }
+  .doc-nav a.active { opacity: 1; color: var(--accent); font-weight: 600; }
+
+  /* Content sections */
+  .doc-content { padding-top: 40px; }
+  .doc-section {
+    margin-bottom: 72px;
+    scroll-margin-top: 32px;
+  }
+  .doc-section-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .doc-section-num {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--font-ui);
+    min-width: 24px;
+  }
+  .doc-subsection {
+    margin: 32px 0 0;
+  }
+  .doc-subsection-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Note box */
+  .note {
+    background: var(--surface);
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+  .note strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  /* Token display */
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .theme-card { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .theme-header { padding: 10px 16px; font-size: 11px; font-weight: 600; font-family: var(--font-ui); border-bottom: 1px solid var(--border); }
+  .theme-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .color-chip { display: flex; align-items: center; gap: 12px; }
+  .chip-dot { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; }
+  .chip-name { font-size: 12px; font-weight: 600; display: block; font-family: var(--font-ui); }
+  .chip-hex { font-size: 11px; font-family: monospace; display: block; }
+  .chip-note { font-size: 10px; opacity: 0.5; display: block; font-style: italic; }
+  .changed { font-size: 9px; background: rgba(217,119,87,0.12); color: #D97757; padding: 1px 6px; border-radius: 3px; font-weight: 600; margin-left: 4px; }
+
+  .type-row { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+  .type-spec { display: grid; grid-template-columns: 100px 1fr 90px; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); }
+  .type-meta { display: flex; flex-direction: column; gap: 2px; }
+  .type-name { font-size: 10px; font-weight: 600; color: var(--muted); font-family: var(--font-ui); }
+  .type-detail { font-size: 9px; font-family: monospace; opacity: 0.6; }
+  .type-sample { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .pill { font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; font-family: var(--font-ui); text-align: center; }
+  .pill-bask { background: rgba(217,119,87,0.1); color: #D97757; }
+  .pill-mont { background: rgba(23,24,28,0.08); color: var(--ink); }
+
+  .spacing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 8px; }
+  .sp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .sp-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; }
+  .sp-bar { height: 100%; background: var(--accent); border-radius: 2px; }
+  .sp-val { font-size: 12px; font-weight: 600; font-family: monospace; }
+  .sp-use { font-size: 10px; color: var(--muted); line-height: 1.3; }
+
+  /* Decision table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  td code { font-size: 10px; }
+
+  /* Wireframe containers */
+  .wf-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 8px; }
+  .wf-grid-2 { display: grid; grid-template-columns: 1fr 1.9fr; gap: 20px; align-items: start; }
+  .wf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+  .wf-grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+  /* ─────────────────────────────────────────── */
+  /* SHARED WIREFRAME STYLES */
+  /* ─────────────────────────────────────────── */
+
+  /* PHONE */
+  .phone { background: #F5F4ED; border: 1.5px solid rgba(23,24,28,0.2); border-radius: 22px; overflow: hidden; max-width: 190px; margin: 0 auto; display: flex; flex-direction: column; }
+
+  .p-nav { display: flex; justify-content: space-between; align-items: center; padding: 9px 13px 8px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .p-logo { font-size: 10px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; }
+  .p-nav-right { display: flex; align-items: center; gap: 7px; }
+  .p-lang-wrap { display: flex; gap: 3px; align-items: center; }
+  .p-lang { font-size: 7.5px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .p-lang.on { color: #D97757; }
+  .p-lang.off { color: #17181C; opacity: 0.3; }
+  .p-lang-sep { font-size: 7.5px; color: #17181C; opacity: 0.2; }
+  .p-theme { font-size: 9px; color: #17181C; opacity: 0.5; }
+  .p-burger { display: flex; flex-direction: column; gap: 2.5px; }
+  .p-burger span { width: 12px; height: 1.2px; background: #17181C; border-radius: 1px; display: block; opacity: 0.55; }
+  .p-progress { height: 2px; background: rgba(23,24,28,0.1); flex-shrink: 0; }
+  .p-progress-fill { height: 100%; background: #D97757; }
+  .p-content { padding: 12px 12px 8px; flex: 1; }
+  .p-eyebrow { font-size: 7.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 5px; }
+  .p-title { font-size: 18px; line-height: 1.2; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 6px; }
+  .p-rule { width: 28px; height: 2px; background: #D97757; border-radius: 1px; margin-bottom: 8px; }
+  .p-sub { font-size: 8.5px; line-height: 1.7; color: rgba(23,24,28,0.6); font-family: 'Montserrat', sans-serif; margin-bottom: 6px; }
+  .p-byline { font-size: 8px; color: rgba(23,24,28,0.45); font-family: 'Montserrat', sans-serif; padding-top: 6px; border-top: 0.5px solid rgba(23,24,28,0.1); text-align: center; letter-spacing: 0.03em; margin-bottom: 8px; }
+  .p-cta-col { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+  .p-btn { font-size: 8.5px; font-weight: 600; padding: 8px 12px; border-radius: 5px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.04em; text-align: center; }
+  .p-btn-primary { background: #17181C; color: #F5F4ED; width: 100%;}
+  .p-btn-legacy { color: #D97757; font-size: 7.5px; font-family: 'Montserrat', sans-serif; font-weight: 600; text-align: center; background: rgba(217,119,87,0.06); border: 0.5px solid rgba(217,119,87,0.28); padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+  .p-chapter-label { font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 4px; }
+  .p-chapter-title { font-size: 12px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 7px; line-height: 1.3; }
+  .p-ruler { height: 5px; background: rgba(23,24,28,0.12); border-radius: 2px; margin: 3.5px 0; }
+  .p-ruler.w90 { width: 90%; } .p-ruler.w75 { width: 75%; }
+  .p-ruler.w85 { width: 85%; } .p-ruler.w60 { width: 60%; }
+  .p-footer { padding: 8px 12px; border-top: 0.5px solid rgba(23,24,28,0.1); display: flex; justify-content: space-between; align-items: center; }
+  .p-footer-copy { font-size: 7px; color: rgba(23,24,28,0.4); font-family: 'Montserrat', sans-serif; }
+  .p-footer-gh svg { width: 10px; height: 10px; fill: #17181C; opacity: 0.28; display: block; }
+
+  /* Bottom ToC bar */
+  .toc-bar { border-top: 0.5px solid rgba(23,24,28,0.1); background: #F5F4ED; display: flex; align-items: center; padding: 5px 8px; gap: 5px; flex-shrink: 0; }
+  .toc-arrow { width: 22px; height: 22px; border-radius: 4px; background: rgba(23,24,28,0.06); border: 0.5px solid rgba(23,24,28,0.12); display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(23,24,28,0.55); flex-shrink: 0; }
+  .toc-center { flex: 1; background: rgba(23,24,28,0.06); border: 0.5px solid rgba(23,24,28,0.12); border-radius: 4px; height: 22px; display: flex; align-items: center; justify-content: center; padding: 0 7px; gap: 4px; overflow: hidden; }
+  .toc-dot { width: 4px; height: 4px; border-radius: 50%; background: #D97757; flex-shrink: 0; }
+  .toc-label { font-size: 7px; font-weight: 600; color: #17181C; font-family: 'Montserrat', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ToC depth levels */
+  .toc-item { font-family: 'Montserrat', sans-serif; padding: 2.5px 4px; border-radius: 3px; display: flex; align-items: baseline; gap: 4px; position: relative; cursor: pointer; text-decoration: none; }
+  .toc-item:hover { background: rgba(23,24,28,0.05); }
+  .toc-d0 { font-size: 8px; font-weight: 600; margin: 3px 0 1px; }
+  .toc-d1 { font-size: 8px; font-weight: 600; margin-top: 5px; margin-bottom: 1px; }
+  .toc-d2 { font-size: 7.5px; padding-left: 12px; }
+  .toc-d3 { font-size: 7px; padding-left: 22px; }
+  .toc-item .toc-n { font-size: inherit; font-weight: 600; min-width: 30px; flex-shrink: 0; color: rgba(23,24,28,0.35); font-family: 'Montserrat', sans-serif; }
+  .toc-item .toc-l { font-size: inherit; color: rgba(23,24,28,0.4); line-height: 1.3; }
+  .toc-item.t-inactive .toc-n,
+  .toc-item.t-inactive .toc-l { opacity: 0.38; }
+  .toc-item.t-active { background: rgba(217,119,87,0.07); }
+  .toc-item.t-active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:2px; height:60%; background:#D97757; border-radius:1px; }
+  .toc-item.t-active .toc-n { color: #D97757; opacity: 1; font-weight: 700; }
+  .toc-item.t-active .toc-l { color: #17181C; opacity: 1; font-weight: 600; }
+
+  /* Drawer constrained height */
+  .drawer-scroll { max-height: 55vh; overflow-y: auto; padding-right: 2px; }
+  .drawer-scroll::-webkit-scrollbar { width: 3px; }
+  .drawer-scroll::-webkit-scrollbar-thumb { background: rgba(23,24,28,0.15); border-radius: 2px; }
+
+  /* Drawer */
+  .drawer-overlay { background: #F5F4ED; border-top: 0.5px solid rgba(23,24,28,0.1); border-radius: 12px 12px 0 0; padding: 7px 12px 12px; }
+  .drawer-handle { width: 24px; height: 2.5px; background: rgba(23,24,28,0.2); border-radius: 2px; margin: 0 auto 8px; }
+  .drawer-title { font-size: 7.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(23,24,28,0.5); font-family: 'Montserrat', sans-serif; margin-bottom: 7px; }
+  .drawer-item { display: flex; align-items: center; gap: 6px; padding: 4.5px 0; border-bottom: 0.5px solid rgba(23,24,28,0.08); justify-content: space-between; }
+  .drawer-item:last-child { border-bottom: none; }
+  .drawer-num { font-size: 7.5px; font-weight: 600; font-family: 'Montserrat', sans-serif; min-width: 10px; color: rgba(23,24,28,0.35); }
+  .drawer-text { font-size: 7.5px; color: rgba(23,24,28,0.5); font-family: 'Montserrat', sans-serif; flex: 1; }
+  .drawer-item.active .drawer-num { color: #D97757; }
+  .drawer-item.active .drawer-text { color: #D97757; font-weight: 600; }
+  .drawer-dot { width: 4px; height: 4px; border-radius: 50%; background: #D97757; flex-shrink: 0; }
+
+  /* DESKTOP */
+  .desktop { background: #F5F4ED; border: 1.5px solid rgba(23,24,28,0.18); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .d-nav { display: flex; justify-content: space-between; align-items: center; padding: 9px 20px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .d-logo { font-size: 12px; font-weight: 700; font-family: 'Libre Baskerville', Georgia, serif; color: #17181C; }
+  .d-nav-right { display: flex; align-items: center; gap: 16px; }
+  .d-links { display: flex; gap: 16px; }
+  .d-link { font-size: 8px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #17181C; font-family: 'Montserrat', sans-serif; opacity: 0.4; padding-bottom: 2px; }
+  .d-link.active { opacity: 1; border-bottom: 1.5px solid #D97757; }
+  .d-controls { display: flex; gap: 6px; align-items: center; }
+  .d-ctrl { font-size: 7.5px; color: rgba(23,24,28,0.6); font-family: 'Montserrat', sans-serif; background: rgba(23,24,28,0.05); padding: 3px 7px; border-radius: 4px; border: 0.5px solid rgba(23,24,28,0.12); font-weight: 500; }
+  .d-ctrl.accent { color: #D97757; border-color: rgba(217,119,87,0.3); background: rgba(217,119,87,0.06); }
+  .d-lang-wrap { display: flex; align-items: center; gap: 4px; background: rgba(23,24,28,0.05); padding: 3px 7px; border-radius: 4px; border: 0.5px solid rgba(23,24,28,0.12); }
+  .d-lang { font-size: 7.5px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .d-lang.on { color: #D97757; }
+  .d-lang.off { color: #17181C; opacity: 0.3; }
+  .d-lang-sep { font-size: 7.5px; color: #17181C; opacity: 0.2; }
+  .d-progress-row { height: 2.5px; background: rgba(23,24,28,0.1); }
+  .d-progress-fill { height: 100%; background: #D97757; }
+
+  /* Three-col grid */
+  .d-body { display: grid; grid-template-columns: 1fr minmax(0,520px) 1fr; min-height: 200px; }
+  .d-toc-col { padding: 20px 10px 20px 18px; display: flex; flex-direction: column; align-items: flex-end; }
+  .d-toc { width: 100%; max-width: 110px; }
+  .d-toc-header { font-size: 7px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(23,24,28,0.4); font-family: 'Montserrat', sans-serif; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .d-toc-item { font-size: 7.5px; font-family: 'Montserrat', sans-serif; padding: 3px 5px; border-radius: 3px; display: flex; align-items: center; gap: 5px; margin-bottom: 1px; position: relative; }
+  .d-toc-item.active { background: rgba(217,119,87,0.07); }
+  .d-toc-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 60%; background: #D97757; border-radius: 1px; }
+  .d-toc-num { font-size: 7px; font-weight: 600; min-width: 8px; }
+  .d-toc-item.active .d-toc-num { color: #D97757; }
+  .d-toc-item:not(.active) .d-toc-num { color: rgba(23,24,28,0.35); }
+  .d-toc-text { font-size: 7px; }
+  .d-toc-item.active .d-toc-text { color: #17181C; font-weight: 600; }
+  .d-toc-item:not(.active) .d-toc-text { color: rgba(23,24,28,0.4); }
+
+  .d-content-col { padding: 24px 36px; }
+  .d-ch-eyebrow { font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 5px; }
+  .d-ch-title { font-size: 18px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 5px; line-height: 1.25; }
+  .d-ch-rule { width: 24px; height: 1.5px; background: #D97757; border-radius: 1px; margin-bottom: 12px; }
+  .d-ruler { height: 5px; background: rgba(23,24,28,0.1); border-radius: 2px; margin: 4px 0; }
+  .d-ruler.w95 { width: 95%; } .d-ruler.w80 { width: 80%; }
+  .d-ruler.w88 { width: 88%; } .d-ruler.w65 { width: 65%; }
+  .d-ruler.w92 { width: 92%; } .d-ruler.w70 { width: 70%; }
+
+  .d-hero { padding: 48px 20px 44px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; flex: 1; }
+  .d-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; }
+  .d-title { font-size: 28px; line-height: 1.2; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; max-width: 480px; }
+  .d-rule { width: 40px; height: 2px; background: #D97757; border-radius: 1px; }
+  .d-sub { font-size: 10.5px; line-height: 1.8; color: rgba(23,24,28,0.55); font-family: 'Montserrat', sans-serif; max-width: 420px; }
+  .d-byline { font-size: 8.5px; color: rgba(23,24,28,0.45); font-family: 'Montserrat', sans-serif; padding-top: 8px; border-top: 0.5px solid rgba(23,24,28,0.1); width: 100%; max-width: 420px; letter-spacing: 0.03em; }
+  .d-cta-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; justify-content: center; }
+  .d-btn { font-size: 9px; font-weight: 600; padding: 9px 20px; border-radius: 5px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.04em; }
+  .d-btn-primary { background: #17181C; color: #F5F4ED; }
+  .d-btn-legacy { color: #D97757; border: 0.5px solid rgba(217,119,87,0.35); background: rgba(217,119,87,0.05); }
+
+  .d-footer { padding: 11px 20px; border-top: 0.5px solid rgba(23,24,28,0.1); display: flex; justify-content: space-between; align-items: center; }
+  .d-footer-copy { font-size: 8.5px; color: rgba(23,24,28,0.4); font-family: 'Montserrat', sans-serif; }
+  .d-footer-gh svg { width: 12px; height: 12px; fill: #17181C; opacity: 0.25; display: block; }
+  .d-footer-note { font-size: 8px; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.4); font-style: italic; text-align: center; padding: 6px 20px; border-top: 0.5px solid rgba(23,24,28,0.1); background: rgba(23,24,28,0.03); }
+
+  /* Appendix sections */
+  .d-section { margin-bottom: 20px; }
+  .d-section.dim { opacity: 0.28; }
+  .d-section-divider { height: 0.5px; background: rgba(23,24,28,0.1); margin-bottom: 16px; }
+  .d-section-label { font-size: 7px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 3px; }
+  .d-section-title { font-size: 13px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 6px; }
+
+  /* DARK MODE FRAMES */
+  .dark-frame { background: #262624; border: 1.5px solid #3a3a38; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .dk-nav { display: flex; justify-content: space-between; align-items: center; padding: 9px 20px; border-bottom: 0.5px solid #333331; }
+  .dk-logo { font-size: 12px; font-weight: 700; font-family: 'Libre Baskerville', Georgia, serif; color: #FAF9F5; }
+  .dk-nav-right { display: flex; align-items: center; gap: 14px; }
+  .dk-links { display: flex; gap: 14px; }
+  .dk-link { font-size: 8px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #FAF9F5; font-family: 'Montserrat', sans-serif; opacity: 0.35; padding-bottom: 2px; }
+  .dk-link.active { opacity: 1; border-bottom: 1.5px solid #D97757; }
+  .dk-controls { display: flex; gap: 6px; align-items: center; }
+  .dk-ctrl { font-size: 7.5px; color: rgba(209,209,209,0.6); font-family: 'Montserrat', sans-serif; background: rgba(255,255,255,0.05); padding: 3px 7px; border-radius: 4px; border: 0.5px solid #3a3a38; font-weight: 500; }
+  .dk-ctrl.accent { color: #D97757; border-color: rgba(217,119,87,0.3); background: rgba(217,119,87,0.08); }
+  .dk-lang-wrap { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 3px 7px; border-radius: 4px; border: 0.5px solid #3a3a38; }
+  .dk-lang { font-size: 7.5px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .dk-lang.on { color: #D97757; }
+  .dk-lang.off { color: #FAF9F5; opacity: 0.25; }
+  .dk-lang-sep { color: #FAF9F5; opacity: 0.15; font-size: 7.5px; }
+  .dk-progress { height: 2.5px; background: #333331; }
+  .dk-progress-fill { height: 100%; background: #D97757; }
+  .dk-hero { padding: 48px 20px 44px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; flex: 1; }
+  .dk-eyebrow { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; }
+  .dk-title { font-size: 28px; line-height: 1.2; font-weight: 700; color: #FAF9F5; font-family: 'Libre Baskerville', Georgia, serif; max-width: 480px; }
+  .dk-rule { width: 40px; height: 2px; background: #D97757; border-radius: 1px; }
+  .dk-sub { font-size: 10.5px; line-height: 1.8; color: rgba(209,209,209,0.55); font-family: 'Montserrat', sans-serif; max-width: 420px; }
+  .dk-byline { font-size: 8.5px; color: rgba(209,209,209,0.35); font-family: 'Montserrat', sans-serif; padding-top: 8px; border-top: 0.5px solid #333331; width: 100%; max-width: 420px; }
+  .dk-cta-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; justify-content: center; }
+  .dk-btn { font-size: 9px; font-weight: 600; padding: 9px 20px; border-radius: 5px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.04em; }
+  .dk-btn-primary { background: #FAF9F5; color: #262624; }
+  .dk-btn-legacy { color: #D97757; border: 0.5px solid rgba(217,119,87,0.35); background: rgba(217,119,87,0.06); }
+  .dk-footer { padding: 11px 20px; border-top: 0.5px solid #333331; display: flex; justify-content: space-between; align-items: center; }
+  .dk-footer-copy { font-size: 8.5px; color: rgba(209,209,209,0.35); font-family: 'Montserrat', sans-serif; }
+  .dk-footer-gh svg { width: 12px; height: 12px; fill: #FAF9F5; opacity: 0.22; display: block; }
+  .dk-body { display: grid; grid-template-columns: 1fr minmax(0,480px) 1fr; min-height: 180px; }
+  .dk-toc-col { padding: 18px 10px 18px 18px; display: flex; flex-direction: column; align-items: flex-end; }
+  .dk-toc { width: 100%; max-width: 110px; }
+  .dk-toc-header { font-size: 7px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(209,209,209,0.35); font-family: 'Montserrat', sans-serif; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 0.5px solid #333331; }
+  .dk-toc-item { font-size: 7.5px; font-family: 'Montserrat', sans-serif; padding: 3px 5px; border-radius: 3px; display: flex; align-items: center; gap: 5px; margin-bottom: 1px; position: relative; }
+  .dk-toc-item.active { background: rgba(217,119,87,0.1); }
+  .dk-toc-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 60%; background: #D97757; border-radius: 1px; }
+  .dk-toc-num { font-size: 7px; font-weight: 600; min-width: 8px; }
+  .dk-toc-item.active .dk-toc-num { color: #D97757; }
+  .dk-toc-item:not(.active) .dk-toc-num { color: rgba(209,209,209,0.25); }
+  .dk-toc-text { font-size: 7px; }
+  .dk-toc-item.active .dk-toc-text { color: #FAF9F5; font-weight: 600; }
+  .dk-toc-item:not(.active) .dk-toc-text { color: rgba(209,209,209,0.3); }
+  .dk-content-col { padding: 24px 36px; }
+  .dk-ch-eyebrow { font-size: 7.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 5px; }
+  .dk-ch-title { font-size: 18px; font-weight: 700; color: #FAF9F5; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 5px; }
+  .dk-ch-rule { width: 24px; height: 1.5px; background: #D97757; border-radius: 1px; margin-bottom: 12px; }
+  .dk-ruler { height: 5px; background: #333331; border-radius: 2px; margin: 4px 0; }
+  .dk-ruler.w95 { width: 95%; } .dk-ruler.w80 { width: 80%; }
+  .dk-ruler.w88 { width: 88%; } .dk-ruler.w65 { width: 65%; }
+
+  /* TABLET */
+  .tablet { background: #F5F4ED; border: 1.5px solid rgba(23,24,28,0.18); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .t-nav { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .t-logo { font-size: 11px; font-weight: 700; font-family: 'Libre Baskerville', Georgia, serif; color: #17181C; }
+  .t-nav-right { display: flex; align-items: center; gap: 12px; }
+  .t-links { display: flex; gap: 12px; }
+  .t-link { font-size: 7.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #17181C; font-family: 'Montserrat', sans-serif; opacity: 0.4; padding-bottom: 2px; }
+  .t-link.active { opacity: 1; border-bottom: 1.5px solid #D97757; }
+  .t-controls { display: flex; gap: 5px; align-items: center; }
+  .t-ctrl { font-size: 7px; color: rgba(23,24,28,0.55); font-family: 'Montserrat', sans-serif; background: rgba(23,24,28,0.05); padding: 2px 6px; border-radius: 3px; border: 0.5px solid rgba(23,24,28,0.12); font-weight: 500; }
+  .t-ctrl.accent { color: #D97757; border-color: rgba(217,119,87,0.3); background: rgba(217,119,87,0.06); }
+  .t-lang-wrap { display: flex; align-items: center; gap: 3px; background: rgba(23,24,28,0.05); padding: 2px 6px; border-radius: 3px; border: 0.5px solid rgba(23,24,28,0.12); }
+  .t-lang { font-size: 7px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .t-lang.on { color: #D97757; }
+  .t-lang.off { color: #17181C; opacity: 0.3; }
+  .t-lang-sep { font-size: 7px; color: #17181C; opacity: 0.2; }
+  .t-progress { height: 2px; background: rgba(23,24,28,0.1); }
+  .t-progress-fill { height: 100%; background: #D97757; }
+  .t-body { display: grid; grid-template-columns: 1fr minmax(0,420px) 1fr; min-height: 200px; }
+  .t-toc-col { padding: 18px 10px 18px 16px; display: flex; flex-direction: column; align-items: flex-end; }
+  .t-toc { width: 100%; max-width: 100px; }
+  .t-toc-header { font-size: 7px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(23,24,28,0.4); font-family: 'Montserrat', sans-serif; margin-bottom: 7px; padding-bottom: 5px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .t-toc-item { font-size: 7px; font-family: 'Montserrat', sans-serif; padding: 3px 5px; border-radius: 3px; display: flex; align-items: center; gap: 5px; margin-bottom: 1px; position: relative; cursor: pointer; text-decoration: none; }
+  .t-toc-item:hover { background: rgba(23,24,28,0.05); }
+  .t-toc-d0 { font-size: 8px; font-weight: 600; margin: 3px 0 1px; }
+  .t-toc-d1 { font-size: 8px; font-weight: 600; margin-top: 5px; margin-bottom: 1px; }
+  .t-toc-d2 { font-size: 7.5px; padding-left: 12px; }
+  .t-toc-d3 { font-size: 7px; padding-left: 22px; }
+  .t-toc-item .t-toc-num {font-size: inherit; font-weight: 600; min-width: 8px; flex-shrink: 0; color: rgba(23,24,28,0.35); font-family: 'Montserrat', sans-serif;}
+  .t-toc-item .t-toc-text {font-size: inherit; color: rgba(23,24,28,0.4); line-height: 1.3;}
+  .t-toc-item.t-inactive .t-toc-num,
+  .t-toc-item.t-inactive .t-toc-text { opacity: 0.38; }
+  .t-toc-item.t-active { background: rgba(217,119,87,0.07); }
+  .t-toc-item.t-active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 60%; background: #D97757; border-radius: 1px; }
+  .t-toc-item.t-active .t-toc-num { color: #D97757; opacity: 1; font-weight: 600; }
+  .t-toc-item.t-active .t-toc-text { color: #17181C; opacity: 1; font-weight: 500; }
+  /* .t-toc-item:not(.active) .t-toc-num { color: rgba(23,24,28,0.35); }
+  .t-toc-text { font-size: 6.5px; }
+  .t-toc-item:not(.active) .t-toc-text { color: rgba(23,24,28,0.4); } */
+  .t-content-col { padding: 18px 24px; }
+  .t-ch-eyebrow { font-size: 7px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 4px; }
+  .t-ch-title { font-size: 16px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 4px; line-height: 1.25; }
+  .t-ch-rule { width: 20px; height: 1.5px; background: #D97757; border-radius: 1px; margin-bottom: 10px; }
+  .t-ruler { height: 5px; background: rgba(23,24,28,0.1); border-radius: 2px; margin: 4px 0; }
+  .t-ruler.w95 { width: 95%; } .t-ruler.w80 { width: 80%; }
+  .t-ruler.w88 { width: 88%; } .t-ruler.w65 { width: 65%; }
+  .t-hero { padding: 40px 28px 36px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+  .t-eyebrow { font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; }
+  .t-title { font-size: 22px; line-height: 1.2; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; max-width: 400px; }
+  .t-rule { width: 32px; height: 2px; background: #D97757; border-radius: 1px; }
+  .t-sub { font-size: 10px; line-height: 1.8; color: rgba(23,24,28,0.55); font-family: 'Montserrat', sans-serif; max-width: 360px; }
+  .t-byline { font-size: 8px; color: rgba(23,24,28,0.45); font-family: 'Montserrat', sans-serif; padding-top: 6px; border-top: 0.5px solid rgba(23,24,28,0.1); width: 100%; max-width: 360px; }
+  .t-cta-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; justify-content: center; }
+  .t-btn { font-size: 8.5px; font-weight: 600; padding: 8px 16px; border-radius: 5px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.04em; }
+  .t-btn-primary { background: #17181C; color: #F5F4ED; }
+  .t-btn-legacy { color: #D97757; border: 0.5px solid rgba(217,119,87,0.35); background: rgba(217,119,87,0.05); }
+  .t-footer { padding: 10px 16px; border-top: 0.5px solid rgba(23,24,28,0.1); display: flex; justify-content: space-between; align-items: center; }
+  .t-footer-copy { font-size: 8px; color: rgba(23,24,28,0.4); font-family: 'Montserrat', sans-serif; }
+  .t-footer-gh svg { width: 11px; height: 11px; fill: #17181C; opacity: 0.25; display: block; }
+  .t-section { margin-bottom: 14px; }
+  .t-section.dim { opacity: 0.28; }
+  .t-section-divider { height: 0.5px; background: rgba(23,24,28,0.1); margin-bottom: 12px; }
+  .t-section-label { font-size: 7px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #D97757; font-family: 'Montserrat', sans-serif; margin-bottom: 3px; }
+  .t-section-title { font-size: 12px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif; margin-bottom: 5px; }
+
+  /* BURGER MENU */
+  .burger-frame { background: #F5F4ED; border: 1.5px solid rgba(23,24,28,0.18); border-radius: 12px; overflow: hidden; width: 190px; }
+  .bm-nav { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 0.5px solid rgba(23,24,28,0.1); }
+  .bm-logo { font-size: 10px; font-weight: 700; font-family: 'Libre Baskerville', Georgia, serif; color: #17181C; }
+  .bm-x { font-size: 12px; color: rgba(23,24,28,0.4); }
+  .bm-items { padding: 4px 0; }
+  .bm-item { padding: 10px 14px; font-size: 10px; font-family: 'Montserrat', sans-serif; font-weight: 500; border-bottom: 0.5px solid rgba(23,24,28,0.08); display: flex; align-items: center; justify-content: space-between; }
+  .bm-item.inactive { color: rgba(23,24,28,0.45); }
+  .bm-item.active-page { color: #D97757; font-weight: 600; }
+  .bm-dot { width: 5px; height: 5px; border-radius: 50%; background: #D97757; flex-shrink: 0; }
+  .bm-dot-placeholder { width: 5px; height: 5px; flex-shrink: 0; }
+  .bm-bottom { padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .bm-util-item { flex: 1; display: flex; justify-content: center; align-items: center; }
+  .bm-util-item:first-child { justify-content: flex-start; }
+  .bm-util-item:last-child { justify-content: flex-end; }
+  .bm-lang-wrap { display: flex; gap: 4px; align-items: center; }
+  .bm-lang { font-size: 9px; font-weight: 600; font-family: 'Montserrat', sans-serif; }
+  .bm-lang.on { color: #D97757; }
+  .bm-lang.off { color: #17181C; opacity: 0.3; }
+  .bm-lang-sep { font-size: 9px; color: #17181C; opacity: 0.2; }
+  .bm-theme { font-size: 12px; color: rgba(23,24,28,0.45); }
+  .bm-legacy-pill { font-size: 8px; font-weight: 600; font-family: 'Montserrat', sans-serif; color: #D97757; background: rgba(217,119,87,0.1); border: 0.5px solid rgba(217,119,87,0.28); padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+
+  /* COMPONENT FRAMES */
+  .comp-wrap { border: 1px solid rgba(23,24,28,0.14); border-radius: 10px; overflow: hidden; background: #F5F4ED; }
+  .comp-header { padding: 7px 12px; background: rgba(23,24,28,0.04); border-bottom: 0.5px solid rgba(23,24,28,0.1); font-size: 9px; font-weight: 600; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.55); letter-spacing: 0.06em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+  .comp-tag { font-size: 8px; background: rgba(217,119,87,0.1); color: #D97757; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  .comp-body { padding: 12px; }
+  .state-label { font-size: 8px; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.45); font-style: italic; margin: 6px 0 4px; }
+  .nav-comp { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 0.5px solid rgba(23,24,28,0.08); }
+  .nav-logo { font-size: 10px; font-weight: 700; font-family: 'Libre Baskerville', Georgia, serif; color: #17181C; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .nav-links { display: flex; gap: 10px; }
+  .nav-link { font-size: 7.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #17181C; font-family: 'Montserrat', sans-serif; opacity: 0.4; }
+  .nav-link.active { opacity: 1; border-bottom: 1.5px solid #D97757; padding-bottom: 1px; }
+  .nav-link.hover { opacity: 0.8; color: #17181C; }
+  .nav-ctrls { display: flex; gap: 4px; }
+  .nav-ctrl { font-size: 7px; background: rgba(23,24,28,0.05); border: 0.5px solid rgba(23,24,28,0.12); padding: 2px 6px; border-radius: 3px; color: rgba(23,24,28,0.6); font-family: 'Montserrat', sans-serif; }
+  .nav-ctrl.on { color: #D97757; }
+  .bar-comp { background: #F5F4ED; border: 0.5px solid rgba(23,24,28,0.14); border-radius: 6px; display: flex; align-items: center; padding: 5px 7px; gap: 5px; margin-bottom: 6px; }
+  .bar-arrow { width: 22px; height: 22px; border-radius: 4px; background: rgba(23,24,28,0.06); border: 0.5px solid rgba(23,24,28,0.12); display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(23,24,28,0.5); flex-shrink: 0; }
+  .bar-center { flex: 1; background: rgba(23,24,28,0.06); border: 0.5px solid rgba(23,24,28,0.12); border-radius: 4px; height: 22px; display: flex; align-items: center; justify-content: center; gap: 5px; overflow: hidden; padding: 0 8px; }
+  .bar-dot { width: 5px; height: 5px; border-radius: 50%; background: #D97757; }
+  .bar-label { font-size: 7.5px; font-weight: 600; color: #17181C; font-family: 'Montserrat', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pb-track { height: 3px; background: rgba(23,24,28,0.1); border-radius: 2px; margin: 4px 0 10px; overflow: hidden; }
+  .pb-fill { height: 100%; background: #D97757; border-radius: 2px; }
+  .cta-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+  .cta-btn { font-size: 8.5px; font-weight: 600; padding: 8px 14px; border-radius: 5px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.04em; }
+  .cta-primary { background: #17181C; color: #F5F4ED; }
+  .cta-legacy { color: #D97757; border: 0.5px solid rgba(217,119,87,0.35); background: rgba(217,119,87,0.05); }
+  .cta-ghost { border: 0.5px solid rgba(23,24,28,0.2); color: rgba(23,24,28,0.55); background: transparent; }
+  .cta-hover { background: rgba(23,24,28,0.07); border: 0.5px solid rgba(23,24,28,0.2); color: #17181C; }
+
+  /* Misc */
+  .ann { font-size: 9px; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.5); font-style: italic; margin-top: 5px; text-align: center; line-height: 1.5; }
+  .ann strong { color: #17181C; font-style: normal; font-weight: 600; }
+  .scroll-hint { font-size: 7.5px; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.45); text-align: center; font-style: italic; padding: 4px 0 2px; }
+  .sub-label { font-size: 10px; font-weight: 600; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.5); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .burger-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .callout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .callout { background: rgba(23,24,28,0.04); border-radius: 8px; border: 1px solid rgba(23,24,28,0.1); padding: 9px 12px; }
+  .callout-title { font-size: 10px; font-weight: 600; font-family: 'Montserrat', sans-serif; color: #17181C; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .callout-dot-sm { width: 6px; height: 6px; border-radius: 50%; background: #D97757; }
+  .callout-body { font-size: 10px; font-family: 'Montserrat', sans-serif; color: rgba(23,24,28,0.6); line-height: 1.5; }
+
+  /* GitHub SVG shared */
+  .gh-svg { width: 12px; height: 12px; fill: #17181C; opacity: 0.25; display: block; }
+  .gh-svg-sm { width: 10px; height: 10px; fill: #17181C; opacity: 0.28; display: block; }
+  .gh-svg-dk { width: 12px; height: 12px; fill: #FAF9F5; opacity: 0.22; display: block; }
+
+  @media (max-width: 900px) {
+    .doc-body { grid-template-columns: 1fr; padding: 0 24px 64px; }
+    .doc-nav { display: none; }
+    .doc-header { padding: 32px 24px 24px; }
+    .wf-grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <h1>TPE-IA — Design Reference</h1>
+  <p>Phase 2 (UI/UX Design) complete · All design decisions · Last updated: Mar 19, 2026, 10:21 AM</p>
+</header>
+
+<div class="doc-body">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="doc-nav">
+    <div class="doc-nav-section">Tokens</div>
+    <a href="#colors">Colors</a>
+    <a href="#typography">Typography</a>
+    <a href="#spacing">Spacing</a>
+    <div class="doc-nav-section">Icons</div>
+    <a href="#icons">Icon Strategy</a>
+    <div class="doc-nav-section">Layout</div>
+    <a href="#global">Global Rules</a>
+    <div class="doc-nav-section">Pages</div>
+    <a href="#landing">Landing</a>
+    <a href="#report">Report</a>
+    <a href="#appendix">Appendix</a>
+    <div class="doc-nav-section">Dark Mode</div>
+    <a href="#dark">Dark Variants</a>
+    <div class="doc-nav-section">Components</div>
+    <a href="#navbar">Navbar</a>
+    <a href="#burger">Burger Menu</a>
+    <a href="#toc-sidebar">ToC Sidebar</a>
+    <a href="#toc-drawer">ToC Drawer</a>
+    <a href="#bottombar">Bottom Bar</a>
+    <a href="#progressbar">Progress Bar</a>
+    <a href="#footer">Footer</a>
+    <a href="#cta">CTA Buttons</a>
+    <div class="doc-nav-section">Behaviour</div>
+    <a href="#interactions">Interactions</a>
+    <a href="#i18n">i18n Routes</a>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="doc-content">
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 1. COLORS -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="colors">
+      <h2 class="doc-section-title"><span class="doc-section-num">01</span>Color Tokens</h2>
+
+      <div class="token-grid">
+        <div class="theme-card">
+          <div class="theme-header" style="background:#F5F4ED; color:#17181C; border-color:rgba(23,24,28,0.1);">☀ Light theme</div>
+          <div class="theme-body" style="background:#F5F4ED;">
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#F5F4ED; border:1px solid rgba(23,24,28,0.15);"></div>
+              <div><span class="chip-name" style="color:#17181C;">Background</span><span class="chip-hex" style="color:#17181C;">#F5F4ED</span><span class="chip-note" style="color:#17181C;">warm parchment</span></div>
+            </div>
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#17181C;"></div>
+              <div><span class="chip-name" style="color:#17181C;">Ink</span><span class="chip-hex" style="color:#17181C;">#17181C</span></div>
+            </div>
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#D97757;"></div>
+              <div><span class="chip-name" style="color:#17181C;">Accent — Terracotta</span><span class="chip-hex" style="color:#17181C;">#D97757</span><span class="chip-note" style="color:#17181C;">links · progress · active states</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-header" style="background:#262624; color:#FAF9F5; border-color:#333331;">◑ Dark theme</div>
+          <div class="theme-body" style="background:#262624;">
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#262624; border:1px solid rgba(209,209,209,0.15);"></div>
+              <div><span class="chip-name" style="color:#FAF9F5;">Background</span><span class="chip-hex" style="color:#FAF9F5;">#262624</span><span class="chip-note" style="color:#FAF9F5;">warm charcoal</span></div>
+            </div>
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#FAF9F5;"></div>
+              <div><span class="chip-name" style="color:#FAF9F5;">Text</span><span class="chip-hex" style="color:#FAF9F5;">#FAF9F5</span></div>
+            </div>
+            <div class="color-chip">
+              <div class="chip-dot" style="background:#D97757;"></div>
+              <div><span class="chip-name" style="color:#FAF9F5;">Accent — Terracotta</span><span class="chip-hex" style="color:#FAF9F5;">#D97757</span><span class="chip-note" style="color:#FAF9F5;">unchanged across themes</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; padding:12px 16px; background:rgba(23,24,28,0.04); border-radius:8px; border:1px solid rgba(23,24,28,0.1);">
+        <div style="font-size:10px; font-weight:600; font-family:var(--font-ui); color:var(--muted); margin-bottom:6px; letter-spacing:0.06em; text-transform:uppercase;">CSS custom property</div>
+        <code style="font-size:11px; display:block; line-height:2; background:none; padding:0;">
+          --color-bg: light-dark(#F5F4ED, #262624);<br>
+          --color-ink: light-dark(#17181C, #FAF9F5);<br>
+          --color-accent: #D97757;
+        </code>
+      </div>
+      <div class="note">
+        <strong>Why warm backgrounds:</strong> pure white and pure black create reading fatigue. Warm parchment and warm charcoal reduce eye strain — the same approach used by Kindle and iBooks for long-form reading.
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 2. TYPOGRAPHY -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="typography">
+      <h2 class="doc-section-title"><span class="doc-section-num">02</span>Typography Scale</h2>
+
+      <div class="type-row">
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">Display H1</span><span class="type-detail">32px · 700 · 1.2</span></div>
+          <span class="type-sample" style="font-family:'Libre Baskerville',Georgia,serif;font-size:26px;font-weight:700;line-height:1.2;color:#17181C;">L'Intelligence Artificielle</span>
+          <span class="pill pill-bask">Baskerville</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">Chapter H2</span><span class="type-detail">24px · 700 · 1.3</span></div>
+          <span class="type-sample" style="font-family:'Libre Baskerville',Georgia,serif;font-size:20px;font-weight:700;color:#17181C;">Chapitre I — Fondements</span>
+          <span class="pill pill-bask">Baskerville</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">Section H3</span><span class="type-detail">18px · 700 · 1.4</span></div>
+          <span class="type-sample" style="font-family:'Libre Baskerville',Georgia,serif;font-size:16px;font-weight:700;color:#17181C;">Les lois d'Asimov</span>
+          <span class="pill pill-bask">Baskerville</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">Body prose</span><span class="type-detail">16px · 400 · 1.8</span></div>
+          <span class="type-sample" style="font-family:'Libre Baskerville',Georgia,serif;font-size:14px;line-height:1.8;color:#17181C;">L'IA désigne l'ensemble des techniques permettant à une machine de simuler l'intelligence.</span>
+          <span class="pill pill-bask">Baskerville</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">UI nav</span><span class="type-detail">13px · 600 · uppercase</span></div>
+          <span class="type-sample" style="font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#17181C;">Rapport · Annexes · EN / FR</span>
+          <span class="pill pill-mont">Montserrat</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">ToC item</span><span class="type-detail">13px · 500</span></div>
+          <span class="type-sample" style="font-family:'Montserrat',sans-serif;font-size:12px;font-weight:500;color:#17181C;">I · <span style="color:#D97757;font-weight:600;">II</span> · III · IV · V · VI</span>
+          <span class="pill pill-mont">Montserrat</span>
+        </div>
+        <div class="type-spec">
+          <div class="type-meta"><span class="type-name">Caption</span><span class="type-detail">12px · 400</span></div>
+          <span class="type-sample" style="font-family:'Montserrat',sans-serif;font-size:12px;color:rgba(23,24,28,0.55);">Chun Kiet Huynh · Yannis Eklo · Sidick Mohamed</span>
+          <span class="pill pill-mont">Montserrat</span>
+        </div>
+      </div>
+      <div class="note"><strong>Rule of two:</strong> Libre Baskerville owns all reading content. Montserrat owns all UI chrome. They never appear on the same element.</div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 3. SPACING -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="spacing">
+      <h2 class="doc-section-title"><span class="doc-section-num">03</span>Spacing Scale</h2>
+      <div class="spacing-grid">
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:5%"></div></div><span class="sp-val">4px</span><span class="sp-use">Icon gaps, tight inline</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:10%"></div></div><span class="sp-val">8px</span><span class="sp-use">Button padding, tag gap</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:15%"></div></div><span class="sp-val">12px</span><span class="sp-use">ToC item padding</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:20%"></div></div><span class="sp-val">16px</span><span class="sp-use">Nav height, row gap</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:30%"></div></div><span class="sp-val">24px</span><span class="sp-use">Card padding, section gap</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:42%"></div></div><span class="sp-val">32px</span><span class="sp-use">Between chapters</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:58%"></div></div><span class="sp-val">48px</span><span class="sp-use">Section breathing room</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:75%"></div></div><span class="sp-val">64px</span><span class="sp-use">Hero vertical padding</span></div>
+        <div class="sp-card"><div class="sp-bar-wrap"><div class="sp-bar" style="width:100%"></div></div><span class="sp-val">96px</span><span class="sp-use">Content width margin</span></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 4. ICONS & SYMBOLS -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="icons">
+      <h2 class="doc-section-title"><span class="doc-section-num">04</span>Icons &amp; Symbols</h2>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+        All interactive icons use <code>astro-icon</code> with the Heroicons set. Inline Unicode characters
+        are reserved for typographic content only (button labels, directional arrows in text).
+        Pure CSS handles decorative shapes (dots, rules).
+      </p>
+
+      <table>
+        <tr><th>Symbol</th><th>Approach</th><th>Icon name</th><th>Rationale</th></tr>
+        <tr>
+          <td><code>◑</code> / <code>☀</code> theme</td>
+          <td><code>astro-icon</code></td>
+          <td><code>heroicons:moon</code> / <code>heroicons:sun</code></td>
+          <td>Unicode <code>◑</code> renders inconsistently across OS — geometric icon needed</td>
+        </tr>
+        <tr>
+          <td><code>‹</code> / <code>›</code> ToC arrows</td>
+          <td><code>astro-icon</code></td>
+          <td><code>heroicons:chevron-left</code> / <code>heroicons:chevron-right</code></td>
+          <td>Chevrons must be precise at 22×22px touch target size</td>
+        </tr>
+        <tr>
+          <td><code>☰</code> burger / <code>✕</code> close</td>
+          <td><code>astro-icon</code></td>
+          <td><code>heroicons:bars-3</code> / <code>heroicons:x-mark</code></td>
+          <td>Animate between states — need consistent geometry for CSS transition</td>
+        </tr>
+        <tr>
+          <td><code>→</code> in button text</td>
+          <td>Unicode inline</td>
+          <td>—</td>
+          <td>Typographic content inside a label, not a navigational icon. No crisp-rendering requirement</td>
+        </tr>
+        <tr>
+          <td><code>↗</code> Site original</td>
+          <td>Unicode inline</td>
+          <td>—</td>
+          <td>Part of the button label — inline character is semantically correct here</td>
+        </tr>
+        <tr>
+          <td>Terracotta dot</td>
+          <td>Pure CSS</td>
+          <td>—</td>
+          <td><code>width:5px; height:5px; border-radius:50%; background:#D97757</code> — no icon needed</td>
+        </tr>
+        <tr>
+          <td>GitHub mark</td>
+          <td><code>astro-icon</code> (Local)</td>
+          <td><code>github</code></td>
+          <td>Stored in <code>src/icons/github.svg</code>. Inlined at build-time for 0 network requests while maintaining consistent <code>&lt;Icon /&gt;</code> component usage.</td>
+        </tr>
+      </table>
+
+      <div class="note" style="margin-top:12px;">
+        <strong>astro-icon setup (Phase 3):</strong> <code>npm install astro-icon</code> — add to
+        <code>astro.config.mjs</code> integrations. Import with
+        <code>import { Icon } from 'astro-icon/components'</code> then use
+        <code>&lt;Icon name="heroicons:moon" /&gt;</code>. Tailwind classes apply directly for sizing:
+        <code>class="w-5 h-5"</code>.
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 5. GLOBAL LAYOUT RULES -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="global">
+      <h2 class="doc-section-title"><span class="doc-section-num">05</span>Global Layout Rules</h2>
+      <table>
+        <tr><th>Element</th><th>Rule</th></tr>
+        <tr><td>Logo</td><td>Always left-anchored — Libre Baskerville 700</td></tr>
+        <tr><td>Nav controls</td><td>All right-aligned: page links → lang toggle → theme toggle → Site original</td></tr>
+        <tr><td>Active nav link</td><td>Terracotta underline <code>border-bottom: 1.5px solid #D97757</code>, full opacity</td></tr>
+        <tr><td>Inactive nav links</td><td>45% opacity, no decoration</td></tr>
+        <tr><td>Nav hover</td><td>Opacity increases to 80%</td></tr>
+        <tr><td>Active language</td><td><code>#D97757</code> — inactive at 30% opacity, no border/background</td></tr>
+        <tr><td>Theme icon</td><td><code>◑</code> in light mode → <code>☀</code> in dark mode</td></tr>
+        <tr><td>Footer</td><td>Natural document flow — never sticky. After all content on every page.</td></tr>
+        <tr><td>Desktop grid</td><td><code>grid-template-columns: 1fr minmax(0, 520px) 1fr</code> — symmetric margins</td></tr>
+        <tr><td>Tablet grid</td><td><code>grid-template-columns: 1fr minmax(0, 420px) 1fr</code></td></tr>
+        <tr><td>Burger breakpoint</td><td><code>block md:hidden</code> — below 768px only</td></tr>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 6. LANDING PAGE -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="landing">
+      <h2 class="doc-section-title"><span class="doc-section-num">06</span>Landing Page</h2>
+
+      <div class="doc-subsection">
+        <div class="wf-grid-2" style="align-items:start;">
+          <div>
+            <p class="wf-label">Mobile · 390px</p>
+            <div class="phone">
+              <div class="p-nav">
+                <span class="p-logo">TPE — IA</span>
+                <div class="p-nav-right">
+                  <div class="p-lang-wrap"><span class="p-lang on">FR</span><span class="p-lang-sep">·</span><span class="p-lang off">EN</span></div>
+                  <span class="p-theme">◑</span>
+                  <div class="p-burger"><span></span><span></span></div>
+                </div>
+              </div>
+              <div class="p-content" style="text-align:center;">
+                <div class="p-eyebrow" style="text-align:center;">TPE · Première · 2014</div>
+                <h1 class="p-title" style="text-align:center;">L'Intelligence Artificielle</h1>
+                <div class="p-rule" style="margin:0 auto 8px;"></div>
+                <p class="p-sub">Entre science et société — une exploration académique de ses origines, ses limites éthiques, et son impact.</p>
+                <p class="p-byline">Chun &nbsp;·&nbsp; Yannis &nbsp;·&nbsp; Sidick</p>
+                <div class="p-cta-col">
+                  <span class="p-btn p-btn-primary">Lire le rapport →</span>
+                  <span class="p-btn-legacy">↗ Site original</span>
+                </div>
+              </div>
+              <div class="p-footer">
+                <span class="p-footer-copy">© 2026 Chun Kiet Huynh</span>
+                <svg class="gh-svg-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="wf-label">Desktop · 1280px</p>
+            <div class="desktop">
+              <div class="d-nav">
+                <span class="d-logo">TPE — IA</span>
+                <div class="d-nav-right">
+                  <div class="d-links">
+                    <span class="d-link active">Accueil</span>
+                    <span class="d-link">Rapport</span>
+                    <span class="d-link">Annexes</span>
+                  </div>
+                  <div class="d-controls">
+                    <div class="d-lang-wrap"><span class="d-lang on">FR</span><span class="d-lang-sep">·</span><span class="d-lang off">EN</span></div>
+                    <span class="d-ctrl">◑</span>
+                    <span class="d-ctrl accent">↗ Site original</span>
+                  </div>
+                </div>
+              </div>
+              <div class="d-hero">
+                <span class="d-eyebrow">Travaux Personnels Encadrés · Première · 2014</span>
+                <h1 class="d-title">L'Intelligence Artificielle — entre science et société</h1>
+                <div class="d-rule"></div>
+                <p class="d-sub">Nous explorons les fondements algorithmiques de l'IA, les lois d'Asimov, et les questions éthiques qui traversent notre époque.</p>
+                <p class="d-byline">Chun Huynh &nbsp;·&nbsp; Yannis Eklo &nbsp;·&nbsp; Sidick Mohamed</p>
+                <div class="d-cta-row">
+                  <span class="d-btn d-btn-primary">Lire le rapport →</span>
+                  <span class="d-btn d-btn-legacy">↗ Site original</span>
+                </div>
+              </div>
+              <div class="d-footer">
+                <span class="d-footer-copy">© 2026 Chun Kiet Huynh</span>
+                <svg class="gh-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-subsection">
+        <p class="doc-subsection-title">Tablet · 768px</p>
+        <div class="tablet">
+          <div class="t-nav">
+            <span class="t-logo">TPE — IA</span>
+            <div class="t-nav-right">
+              <div class="t-links"><span class="t-link active">Accueil</span><span class="t-link">Rapport</span><span class="t-link">Annexes</span></div>
+              <div class="t-controls">
+                <div class="t-lang-wrap"><span class="t-lang on">FR</span><span class="t-lang-sep">·</span><span class="t-lang off">EN</span></div>
+                <span class="t-ctrl">◑</span><span class="t-ctrl accent">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <div class="t-hero">
+            <span class="t-eyebrow">Travaux Personnels Encadrés · Première · 2024</span>
+            <h1 class="t-title">L'Intelligence Artificielle — entre science et société</h1>
+            <div class="t-rule"></div>
+            <p class="t-sub">Nous explorons les fondements algorithmiques de l'IA, les lois d'Asimov, et les questions éthiques contemporaines.</p>
+            <p class="t-byline">Chun Huynh &nbsp;·&nbsp; Yannis Eklo &nbsp;·&nbsp; Sidick Mohamed</p>
+            <div class="t-cta-row">
+              <span class="t-btn t-btn-primary">Lire le rapport →</span>
+              <span class="t-btn t-btn-legacy">↗ Site original</span>
+            </div>
+          </div>
+          <div class="t-footer">
+            <span class="t-footer-copy">© 2026 Chun Kiet Huynh</span>
+            <svg class="t-footer-gh" style="width:11px;height:11px;fill:#17181C;opacity:0.25;display:block;" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+          </div>
+        </div>
+        <div class="note"><strong>Tablet:</strong> identical structure to desktop hero. H1 scales to ~22px. Vertical padding tightened to 40px. No burger — full nav visible at 768px.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 7. REPORT PAGE -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="report">
+      <h2 class="doc-section-title"><span class="doc-section-num">07</span>Report Page</h2>
+
+      <div class="doc-subsection">
+        <p class="doc-subsection-title">Mobile · Three states</p>
+        <div class="wf-grid-3">
+          <div>
+            <p class="sub-label">Reading</p>
+            <div style="display:flex;justify-content:center;">
+              <div class="phone">
+                <div class="p-nav">
+                  <span class="p-logo">TPE — IA</span>
+                  <div class="p-nav-right">
+                    <div class="p-lang-wrap"><span class="p-lang on">FR</span><span class="p-lang-sep">·</span><span class="p-lang off">EN</span></div>
+                    <span class="p-theme">◑</span>
+                    <div class="p-burger"><span></span><span></span></div>
+                  </div>
+                </div>
+                <div class="p-progress"><div class="p-progress-fill" style="width:38%"></div></div>
+                <div class="p-content">
+                  <div class="p-chapter-label">Chapitre II</div>
+                  <div class="p-chapter-title">Fondements algorithmiques</div>
+                  <div class="p-ruler w90"></div><div class="p-ruler w75"></div>
+                  <div class="p-ruler w85"></div><div class="p-ruler w90"></div>
+                  <div class="p-ruler w60"></div><div class="p-ruler w85"></div>
+                  <div class="p-ruler w75"></div><div class="p-ruler w90"></div>
+                </div>
+                <div class="toc-bar">
+                  <div class="toc-arrow">‹</div>
+                  <div class="toc-center"><div class="toc-dot"></div><span class="toc-label">II — Fondements</span></div>
+                  <div class="toc-arrow">›</div>
+                </div>
+              </div>
+            </div>
+            <p class="ann"><strong>Default reading state</strong></p>
+          </div>
+          <div>
+            <p class="sub-label">Scroll up ↑</p>
+            <div style="display:flex;justify-content:center;">
+              <div class="phone">
+                <div class="p-progress"><div class="p-progress-fill" style="width:52%"></div></div>
+                <div class="p-content" style="padding-top:14px;padding-bottom:14px;">
+                  <div class="p-chapter-label">Chapitre II</div>
+                  <div class="p-chapter-title">Fondements algorithmiques</div>
+                  <div class="p-ruler w90"></div><div class="p-ruler w75"></div>
+                  <div class="p-ruler w85"></div><div class="p-ruler w90"></div>
+                  <div class="p-ruler w60"></div><div class="p-ruler w85"></div>
+                  <div class="p-ruler w75"></div><div class="p-ruler w90"></div>
+                  <div class="p-ruler w85"></div><div class="p-ruler w60"></div>
+                </div>
+                <div class="scroll-hint">both bars hidden</div>
+              </div>
+            </div>
+            <p class="ann"><strong>Both navbars hidden</strong><br>progress bar remains</p>
+          </div>
+          <div>
+            <p class="sub-label">Drawer open</p>
+            <div style="display:flex;justify-content:center;">
+              <div class="phone" style="min-height:280px;position:relative;">
+                <div class="p-nav">
+                  <span class="p-logo">TPE — IA</span>
+                  <div class="p-nav-right">
+                    <div class="p-lang-wrap"><span class="p-lang on">FR</span><span class="p-lang-sep">·</span><span class="p-lang off">EN</span></div>
+                    <span class="p-theme">◑</span>
+                    <div class="p-burger"><span></span><span></span></div>
+                  </div>
+                </div>
+                <div class="p-progress"><div class="p-progress-fill" style="width:38%"></div></div>
+                <div class="p-content" style="opacity:0.2;">
+                  <div class="p-ruler w90"></div><div class="p-ruler w75"></div><div class="p-ruler w60"></div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:0;max-height:25vh;">
+                  <div class="drawer-overlay">
+                    <div class="drawer-handle"></div>
+                    <div class="drawer-title">Table des matières</div>
+                    <div class="drawer-scroll" style="max-height: 20vh;">
+                      <div class="drawer-item"><span class="drawer-text">Introduction</span></div>
+                      <div class="drawer-item"><span class="drawer-num">I.</span><span class="drawer-text">Définitions</span></div>
+                      <div class="drawer-item"><span class="drawer-num">I.1</span><span class="drawer-text">Qu'est ce que l'IA ?</span></div>
+                      <div class="drawer-item"><span class="drawer-num">I.2</span><span class="drawer-text">Types d'intel.</span></div>
+                      <div class="drawer-item active"><span class="drawer-num">I.2.1</span><span class="drawer-text">L'IA faible</span><div class="drawer-dot"></div></div>
+                      <div class="drawer-item"><span class="drawer-num">I.2.2</span><span class="drawer-text">L'IA forte</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.</span><span class="drawer-text">Origines et dév.</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.1</span><span class="drawer-text">L'IA à ses débuts</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.2</span><span class="drawer-text">Dév. rapide</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.3</span><span class="drawer-text">Domaines d'app.</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.3.1</span><span class="drawer-text">Cinéma</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.3.2</span><span class="drawer-text">Moteur de rech.</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.3.3</span><span class="drawer-text">Reconnaissance</span></div>
+                      <div class="drawer-item"><span class="drawer-num">II.3.4</span><span class="drawer-text">Jeux vidéo</span></div>
+                      <div class="drawer-item"><span class="drawer-num">III.</span><span class="drawer-text">Les impacts</span></div>
+                      <div class="drawer-item"><span class="drawer-num">III.1</span><span class="drawer-text">Les avantages</span></div>
+                      <div class="drawer-item"><span class="drawer-num">III.2</span><span class="drawer-text">Les inconvénients</span></div>
+                      <div class="drawer-item"><span class="drawer-num">IV.</span><span class="drawer-text">Les limites</span></div>
+                      <div class="drawer-item"><span class="drawer-num">IV.1</span><span class="drawer-text">CSER</span></div>
+                      <div class="drawer-item"><span class="drawer-num">IV.2</span><span class="drawer-text">L'Homme et l'IA</span></div>
+                      <div class="drawer-item" style="border-bottom:none;"><span class="drawer-text">Conclusion</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="ann"><strong>Active:</strong> terracotta label + dot</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-subsection">
+        <p class="doc-subsection-title">Desktop · 1280px — Symmetric three-column grid</p>
+        <div class="desktop">
+          <div class="d-nav">
+            <span class="d-logo">TPE — IA</span>
+            <div class="d-nav-right">
+              <div class="d-links"><span class="d-link">Accueil</span><span class="d-link active">Rapport</span><span class="d-link">Annexes</span></div>
+              <div class="d-controls">
+                <div class="d-lang-wrap"><span class="d-lang on">FR</span><span class="d-lang-sep">·</span><span class="d-lang off">EN</span></div>
+                <span class="d-ctrl">◑</span><span class="d-ctrl accent">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <div class="d-progress-row"><div class="d-progress-fill" style="width:42%"></div></div>
+          <div class="d-body">
+            <div class="d-toc-col">
+              <div class="d-toc">
+                <div class="d-toc-header">Table des matières</div>
+                <a href="#introduction" class="toc-item toc-d0 t-inactive"><span class="toc-l">Introduction</span></a>
+                <a href="#i"     class="toc-item toc-d1 t-active"><span class="toc-n">I.</span><span class="toc-l">Définitions</span></a>
+                <a href="#i-1"   class="toc-item toc-d2 t-inactive"><span class="toc-n">I.1</span><span class="toc-l">Qu'est ce que l'IA ?</span></a>
+                <a href="#i-2"   class="toc-item toc-d2 t-inactive"><span class="toc-n">I.2</span><span class="toc-l">Types d'intelligences</span></a>
+                <a href="#i-2-1" class="toc-item toc-d3 t-inactive"><span class="toc-n">I.2.1</span><span class="toc-l">L'IA faible</span></a>
+                <a href="#i-2-2" class="toc-item toc-d3 t-inactive"><span class="toc-n">I.2.2</span><span class="toc-l">L'IA forte</span></a>
+                <a href="#ii"    class="toc-item toc-d1 t-inactive"><span class="toc-n">II.</span><span class="toc-l">Origines et développement</span></a>
+                <a href="#ii-1"  class="toc-item toc-d2 t-inactive"><span class="toc-n">II.1</span><span class="toc-l">L'IA à ses débuts</span></a>
+                <a href="#ii-2"  class="toc-item toc-d2 t-inactive"><span class="toc-n">II.2</span><span class="toc-l">Développement rapide</span></a>
+                <a href="#ii-3"  class="toc-item toc-d2 t-inactive"><span class="toc-n">II.3</span><span class="toc-l">Domaines d'application</span></a>
+                <a href="#ii-3-1" class="toc-item toc-d3 t-inactive"><span class="toc-n">II.3.1</span><span class="toc-l">Cinéma</span></a>
+                <a href="#ii-3-2" class="toc-item toc-d3 t-inactive"><span class="toc-n">II.3.2</span><span class="toc-l">Moteur de recherche</span></a>
+                <a href="#ii-3-3" class="toc-item toc-d3 t-inactive"><span class="toc-n">II.3.3</span><span class="toc-l">Reconnaissance</span></a>
+                <a href="#ii-3-4" class="toc-item toc-d3 t-inactive"><span class="toc-n">II.3.4</span><span class="toc-l">Jeux vidéo</span></a>
+                <a href="#iii"   class="toc-item toc-d1 t-inactive"><span class="toc-n">III.</span><span class="toc-l">Les impacts</span></a>
+                <a href="#iii-1" class="toc-item toc-d2 t-inactive"><span class="toc-n">III.1</span><span class="toc-l">Les avantages</span></a>
+                <a href="#iii-2" class="toc-item toc-d2 t-inactive"><span class="toc-n">III.2</span><span class="toc-l">Les inconvénients</span></a>
+                <a href="#iv"    class="toc-item toc-d1 t-inactive"><span class="toc-n">IV.</span><span class="toc-l">Les limites</span></a>
+                <a href="#iv-1"  class="toc-item toc-d2 t-inactive"><span class="toc-n">IV.1</span><span class="toc-l">Théories du CSER</span></a>
+                <a href="#iv-2"  class="toc-item toc-d2 t-inactive"><span class="toc-n">IV.2</span><span class="toc-l">L'Homme et l'IA</span></a>
+                <a href="#conclusion" class="toc-item toc-d0 t-inactive" style="margin-top:5px;"><span class="toc-l">Conclusion</span></a>
+              </div>
+            </div>
+            <div class="d-content-col">
+              <div class="d-ch-eyebrow">Chapitre I</div>
+              <div class="d-ch-title">Définitions</div>
+              <div class="d-ch-rule"></div>
+              <div class="d-ruler w95"></div><div class="d-ruler w80"></div><div class="d-ruler w88"></div>
+              <div class="d-ruler w95"></div><div class="d-ruler w65"></div><div class="d-ruler w92"></div>
+              <div class="d-ruler w80"></div><div class="d-ruler w88"></div><div class="d-ruler w70"></div>
+              <div class="d-ruler w95"></div><div class="d-ruler w80"></div><div class="d-ruler w65"></div>
+            </div>
+            <div class="d-right-col"></div>
+          </div>
+          <div class="d-footer-note">↓ Footer appears here only after Chapter VI</div>
+        </div>
+
+        <div style="display:flex;align-items:stretch;font-size:10px;font-family:var(--font-ui);color:var(--muted);margin-top:6px;">
+          <div style="flex:1;text-align:center;padding:5px 4px;border-top:2px solid rgba(23,24,28,0.2);font-style:italic;font-size:9px;">1fr — left margin<br>ToC right-aligned to inner edge</div>
+          <div style="flex:1;text-align:center;padding:5px 4px;border-top:2px solid #D97757;font-weight:600;font-size:9px;color:#17181C;">minmax(0, 520px)<br>content column</div>
+          <div style="flex:1;text-align:center;padding:5px 4px;border-top:2px solid rgba(23,24,28,0.2);font-style:italic;font-size:9px;">1fr — right margin<br>empty, mirrors left</div>
+        </div>
+        <div class="note"><strong>No vertical border separators.</strong> Progress bar immediately below navbar. ToC blends into background — no card, no border. Active item: terracotta left-bar + warm tint. Right margin: empty and equal to left.</div>
+      </div>
+
+      <div class="doc-subsection">
+        <p class="doc-subsection-title">Tablet · 768px</p>
+        <div class="tablet">
+          <div class="t-nav">
+            <span class="t-logo">TPE — IA</span>
+            <div class="t-nav-right">
+              <div class="t-links"><span class="t-link">Accueil</span><span class="t-link active">Rapport</span><span class="t-link">Annexes</span></div>
+              <div class="t-controls">
+                <div class="t-lang-wrap"><span class="t-lang on">FR</span><span class="t-lang-sep">·</span><span class="t-lang off">EN</span></div>
+                <span class="t-ctrl">◑</span><span class="t-ctrl accent">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <div class="t-progress"><div class="t-progress-fill" style="width:42%"></div></div>
+          <div class="t-body">
+            <div class="t-toc-col">
+              <div class="t-toc">
+                <div class="t-toc-header">Table des Matières</div>
+                <a href="#introduction" class="t-toc-item t-toc-d0 t-inactive"><span class="t-toc-text">Introduction</span></a>
+                <a href="#i"     class="t-toc-item t-toc-d1 t-active"><span class="t-toc-num">I.</span><span class="t-toc-text">Définitions</span></a>
+                <a href="#i-1"   class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">I.1</span><span class="t-toc-text">Qu'est ce que l'IA ?</span></a>
+                <a href="#i-2"   class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">I.2</span><span class="t-toc-text">Types d'intelligences</span></a>
+                <a href="#i-2-1" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">I.2.1</span><span class="t-toc-text">L'IA faible</span></a>
+                <a href="#i-2-2" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">I.2.2</span><span class="t-toc-text">L'IA forte</span></a>
+                <a href="#ii"    class="t-toc-item t-toc-d1 t-inactive"><span class="t-toc-num">II.</span><span class="t-toc-text">Origines et dév.</span></a>
+                <a href="#ii-1"  class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">II.1</span><span class="t-toc-text">L'IA à ses débuts</span></a>
+                <a href="#ii-2"  class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">II.2</span><span class="t-toc-text">Dév. rapide</span></a>
+                <a href="#ii-3"  class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">II.3</span><span class="t-toc-text">Domaines d'app.</span></a>
+                <a href="#ii-3-1" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">II.3.1</span><span class="t-toc-text">Cinéma</span></a>
+                <a href="#ii-3-2" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">II.3.2</span><span class="t-toc-text">Moteur de rech.</span></a>
+                <a href="#ii-3-3" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">II.3.3</span><span class="t-toc-text">Reconnaissance</span></a>
+                <a href="#ii-3-4" class="t-toc-item t-toc-d3 t-inactive"><span class="t-toc-num">II.3.4</span><span class="t-toc-text">Jeux vidéo</span></a>
+                <a href="#iii"   class="t-toc-item t-toc-d1 t-inactive"><span class="t-toc-num">III.</span><span class="t-toc-text">Les impacts</span></a>
+                <a href="#iii-1" class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">III.1</span><span class="t-toc-text">Les avantages</span></a>
+                <a href="#iii-2" class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">III.2</span><span class="t-toc-text">Les inconvénients</span></a>
+                <a href="#iv"    class="t-toc-item t-toc-d1 t-inactive"><span class="t-toc-num">IV.</span><span class= "t-toc-text" > Les limites </span> </a>
+                <a href="#iv-1"  class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">IV.1</span><span class="t-toc-text">Théories du CSER</span></a>
+                <a href="#iv-2"  class="t-toc-item t-toc-d2 t-inactive"><span class="t-toc-num">IV.2</span><span class="t-toc-text">L'Homme et l'IA</span></a>
+                <a href="#conclusion" class="t-toc-item t-toc-d0 t-inactive" style="margin-top:5px;"><span class="t-toc-text">Conclusion</span></a>
+              </div>
+            </div>
+            <div class="t-content-col">
+              <div class="t-ch-eyebrow">Chapitre I</div>
+              <div class="t-ch-title">Définitions</div>
+              <div class="t-ch-rule"></div>
+              <div class="t-ruler w95"></div><div class="t-ruler w80"></div><div class="t-ruler w88"></div>
+              <div class="t-ruler w95"></div><div class="t-ruler w65"></div><div class="t-ruler w80"></div>
+              <div class="t-ruler w88"></div><div class="t-ruler w70"></div><div class="t-ruler w95"></div>
+            </div>
+            <div></div>
+          </div>
+        </div>
+        <div class="note"><strong>Tablet:</strong> same three-col grid, content column capped at 420px. Footer deferred to after Chapter VI.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 8. APPENDIX PAGE -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="appendix">
+      <h2 class="doc-section-title"><span class="doc-section-num">08</span>Appendix Page</h2>
+
+      <div class="doc-subsection">
+        <div class="wf-grid-equal">
+          <div>
+            <p class="sub-label">Mobile — Reading</p>
+            <div style="display:flex;justify-content:center;">
+              <div class="phone">
+                <div class="p-nav">
+                  <span class="p-logo">TPE — IA</span>
+                  <div class="p-nav-right">
+                    <div class="p-lang-wrap"><span class="p-lang on">FR</span><span class="p-lang-sep">·</span><span class="p-lang off">EN</span></div>
+                    <span class="p-theme">◑</span>
+                    <div class="p-burger"><span></span><span></span></div>
+                  </div>
+                </div>
+                <!-- No progress bar -->
+                <div class="p-content">
+                  <div class="p-eyebrow" style="text-align:left;">Annexes</div>
+                  <div class="p-chapter-title" style="margin-bottom:8px;">Compléments & Références</div>
+                  <div class="p-rule" style="margin-bottom:10px;"></div>
+                  <div style="opacity:0.28;margin-bottom:6px;">
+                    <div style="font-size:7px;font-weight:700;font-family:'Montserrat', sans-serif; text-transform: uppercase; color:#D97757;">Annexe A</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif;">Biographies</div>
+                    <div class="p-rule"></div>
+                    <div class="p-ruler w90"></div><div class="p-ruler w70"></div>
+                  </div>
+                  <div style="height:0.5px;background:rgba(23,24,28,0.1);margin:5px 0;"></div>
+                  <div style="margin-bottom:6px;">
+                    <div style="font-size:7px;font-weight:700;font-family:'Montserrat', sans-serif; text-transform: uppercase; color:#D97757;">Annexe B</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif;">Bibliographie</div>
+                    <div class="p-rule"></div>
+                    <div class="p-ruler w90"></div><div class="p-ruler w80"></div><div class="p-ruler w70"></div>
+                  </div>
+                  <div style="height:0.5px;background:rgba(23,24,28,0.1);margin:5px 0;"></div>
+                  <div style="opacity:0.28;">
+                    <div style="font-size:7px;font-weight:700;font-family:'Montserrat', sans-serif; text-transform: uppercase; color:#D97757;">Annexe C</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #17181C; font-family: 'Libre Baskerville', Georgia, serif;">Les trois lois de la robotique d'Asimov</div>
+                    <div class="p-rule"></div>
+                    <div class="p-ruler w80"></div><div class="p-ruler w65"></div>
+                  </div>
+                </div>
+                <div class="toc-bar">
+                  <div class="toc-arrow">‹</div>
+                  <div class="toc-center"><div class="toc-dot"></div><span class="toc-label">B — Bibliographie</span></div>
+                  <div class="toc-arrow">›</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="sub-label">Mobile — Drawer open</p>
+            <div style="display:flex;justify-content:center;">
+              <div class="phone" style="min-height:290px;position:relative;">
+                <div class="p-nav">
+                  <span class="p-logo">TPE — IA</span>
+                  <div class="p-nav-right">
+                    <div class="p-lang-wrap"><span class="p-lang on">FR</span><span class="p-lang-sep">·</span><span class="p-lang off">EN</span></div>
+                    <span class="p-theme">◑</span>
+                    <div class="p-burger"><span></span><span></span></div>
+                  </div>
+                </div>
+                <div class="p-content" style="opacity:0.2;">
+                  <div class="p-ruler w90"></div><div class="p-ruler w75"></div><div class="p-ruler w60"></div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:0;">
+                  <div class="drawer-overlay">
+                    <div class="drawer-handle"></div>
+                    <div class="drawer-title">Annexes</div>
+                    <div class="drawer-scroll">
+                      <div class="drawer-item"><span class="drawer-num">A</span><span class="drawer-text">Biographies</span></div>
+                      <div class="drawer-item active"><span class="drawer-num">B</span><span class="drawer-text">Bibliographie</span><div class="drawer-dot"></div></div>
+                      <div class="drawer-item"><span class="drawer-num">C</span><span class="drawer-text">Lois d'Asimov</span></div>
+                      <div class="drawer-item"><span class="drawer-num">D</span><span class="drawer-text">Remerciements</span></div>
+                      <div class="drawer-item"><span class="drawer-num">E</span><span class="drawer-text">Synthèse — Chun</span></div>
+                      <div class="drawer-item"><span class="drawer-num">F</span><span class="drawer-text">Synthèse — Yannis</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-subsection">
+        <p class="doc-subsection-title">Desktop · 1280px</p>
+        <div class="desktop">
+          <div class="d-nav">
+            <span class="d-logo">TPE — IA</span>
+            <div class="d-nav-right">
+              <div class="d-links"><span class="d-link">Accueil</span><span class="d-link">Rapport</span><span class="d-link active">Annexes</span></div>
+              <div class="d-controls">
+                <div class="d-lang-wrap"><span class="d-lang on">FR</span><span class="d-lang-sep">·</span><span class="d-lang off">EN</span></div>
+                <span class="d-ctrl">◑</span><span class="d-ctrl accent">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <!-- No progress bar -->
+          <div class="d-body" style="grid-template-columns: 1fr minmax(0,520px) 1fr;">
+            <div class="d-toc-col">
+              <div class="d-toc">
+                <div class="d-toc-header">Annexes</div>
+                <div class="d-toc-item"><span class="d-toc-num">A</span><span class="d-toc-text">Biographies</span></div>
+                <div class="d-toc-item active"><span class="d-toc-num">B</span><span class="d-toc-text">Bibliographie</span></div>
+                <div class="d-toc-item"><span class="d-toc-num">C</span><span class="d-toc-text">Lois d'Asimov</span></div>
+                <div class="d-toc-item"><span class="d-toc-num">D</span><span class="d-toc-text">Remerciements</span></div>
+                <div class="d-toc-item"><span class="d-toc-num">E</span><span class="d-toc-text">Synthèse Chun</span></div>
+                <div class="d-toc-item"><span class="d-toc-num">F</span><span class="d-toc-text">Synthèse Yannis</span></div>
+              </div>
+            </div>
+            <div class="d-content-col">
+              <div class="d-ch-eyebrow">Annexes</div>
+              <div class="d-ch-title">Compléments & Références</div>
+              <div class="d-ch-rule"></div>
+              <div class="d-section dim"><div class="d-section-label">Annexe A</div><div class="d-section-title">Biographies</div><div class="d-ch-rule"></div><div class="d-ruler w95"></div><div class="d-ruler w70"></div></div>
+              <div class="d-section-divider"></div>
+              <div class="d-section"><div class="d-section-label">Annexe B</div><div class="d-section-title">Bibliographie</div><div class="d-ch-rule"></div><div class="d-ruler w95"></div><div class="d-ruler w80"></div><div class="d-ruler w65"></div></div>
+              <div class="d-section-divider"></div>
+              <div class="d-section dim"><div class="d-section-label">Annexe C</div><div class="d-section-title">Les trois lois de la robotique d'Asimov</div><div class="d-ch-rule"></div><div class="d-ruler w88"></div><div class="d-ruler w65"></div></div>
+              <div class="d-section-divider"></div>
+              <div class="d-section dim"><div class="d-section-label">Annexe D</div><div class="d-section-title">Remerciements</div><div class="d-ch-rule"></div><div class="d-ruler w70"></div><div class="d-ruler w50"></div></div>
+              <div class="d-section-divider"></div>
+              <div class="d-section dim"><div class="d-section-label">Annexe E</div><div class="d-section-title">Synthèse de Chun</div><div class="d-ch-rule"></div><div class="d-ruler w95"></div><div class="d-ruler w80"></div></div>
+              <div class="d-section-divider"></div>
+              <div class="d-section dim"><div class="d-section-label">Annexe F</div><div class="d-section-title">Synthèse de Yannis</div><div class="d-ch-rule"></div><div class="d-ruler w95"></div><div class="d-ruler w80"></div></div>
+            </div>
+            <div class="d-right-col"></div>
+          </div>
+          <div class="d-footer">
+            <span class="d-footer-copy">© 2026 Chun Kiet Huynh</span>
+            <svg class="gh-svg" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+          </div>
+        </div>
+        <div class="note"><strong>No progress bar.</strong> Active section full opacity. Inactive sections at 28% opacity. Sections labelled A–F to distinguish from Report's I–VI. Footer always after all Section contents.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 9. DARK MODE -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="dark">
+      <h2 class="doc-section-title"><span class="doc-section-num">09</span>Dark Mode Variants</h2>
+
+      <div class="wf-grid-equal">
+        <div>
+          <p class="wf-label">Landing · Dark</p>
+          <div class="dark-frame">
+            <div class="dk-nav">
+              <span class="dk-logo">TPE — IA</span>
+              <div class="dk-nav-right">
+                <div class="dk-links"><span class="dk-link active">Accueil</span><span class="dk-link">Rapport</span><span class="dk-link">Annexes</span></div>
+                <div class="dk-controls">
+                  <div class="dk-lang-wrap"><span class="dk-lang on">FR</span><span class="dk-lang-sep">·</span><span class="dk-lang off">EN</span></div>
+                  <span class="dk-ctrl">☀</span><span class="dk-ctrl accent">↗ Site original</span>
+                </div>
+              </div>
+            </div>
+            <div class="dk-hero">
+              <span class="dk-eyebrow">Travaux Pratiques Encadrés · 2024</span>
+              <h1 class="dk-title">L'Intelligence Artificielle — entre science et société</h1>
+              <div class="dk-rule"></div>
+              <p class="dk-sub">Nous explorons les fondements algorithmiques de l'IA, les lois d'Asimov, et les questions éthiques contemporaines.</p>
+              <p class="dk-byline">Chun Huynh &nbsp;·&nbsp; Yannis</p>
+              <div class="dk-cta-row">
+                <span class="dk-btn dk-btn-primary">Lire le rapport →</span>
+                <span class="dk-btn dk-btn-legacy">↗ Site original</span>
+              </div>
+            </div>
+            <div class="dk-footer">
+              <span class="dk-footer-copy">© 2026 Chun Kiet Huynh</span>
+              <svg class="gh-svg-dk" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="wf-label">Report · Dark</p>
+          <div class="dark-frame">
+            <div class="dk-nav">
+              <span class="dk-logo">TPE — IA</span>
+              <div class="dk-nav-right">
+                <div class="dk-links"><span class="dk-link">Accueil</span><span class="dk-link active">Rapport</span><span class="dk-link">Annexes</span></div>
+                <div class="dk-controls">
+                  <div class="dk-lang-wrap"><span class="dk-lang on">FR</span><span class="dk-lang-sep">·</span><span class="dk-lang off">EN</span></div>
+                  <span class="dk-ctrl">☀</span><span class="dk-ctrl accent">↗</span>
+                </div>
+              </div>
+            </div>
+            <div class="dk-progress"><div class="dk-progress-fill" style="width:42%"></div></div>
+            <div class="dk-body">
+              <div class="dk-toc-col">
+                <div class="dk-toc">
+                  <div class="dk-toc-header">Matières</div>
+                  <div class="dk-toc-item"><span class="dk-toc-num">I</span><span class="dk-toc-text">Histoire</span></div>
+                  <div class="dk-toc-item active"><span class="dk-toc-num">II</span><span class="dk-toc-text">Fondements</span></div>
+                  <div class="dk-toc-item"><span class="dk-toc-num">III</span><span class="dk-toc-text">Turing</span></div>
+                  <div class="dk-toc-item"><span class="dk-toc-num">IV</span><span class="dk-toc-text">Éthique</span></div>
+                  <div class="dk-toc-item"><span class="dk-toc-num">V</span><span class="dk-toc-text">Asimov</span></div>
+                  <div class="dk-toc-item"><span class="dk-toc-num">VI</span><span class="dk-toc-text">Enjeux</span></div>
+                </div>
+              </div>
+              <div class="dk-content-col">
+                <div class="dk-ch-eyebrow">Chapitre II</div>
+                <div class="dk-ch-title">Fondements algorithmiques</div>
+                <div class="dk-ch-rule"></div>
+                <div class="dk-ruler w95"></div><div class="dk-ruler w80"></div><div class="dk-ruler w88"></div>
+                <div class="dk-ruler w65"></div><div class="dk-ruler w95"></div><div class="dk-ruler w80"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <table>
+          <tr><th>Element</th><th>Light</th><th>Dark</th></tr>
+          <tr><td>Background</td><td><code>#F5F4ED</code></td><td><code>#262624</code></td></tr>
+          <tr><td>Text</td><td><code>#17181C</code></td><td><code>#FAF9F5</code></td></tr>
+          <tr><td>Accent</td><td><code>#D97757</code></td><td><code>#D97757</code> unchanged</td></tr>
+          <tr><td>Primary CTA bg</td><td><code>#17181C</code></td><td><code>#FAF9F5</code></td></tr>
+          <tr><td>Primary CTA text</td><td><code>#F5F4ED</code></td><td><code>#262624</code></td></tr>
+          <tr><td>Theme icon</td><td><code>◑</code></td><td><code>☀</code></td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 10. NAVBAR COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="navbar">
+      <h2 class="doc-section-title"><span class="doc-section-num">10</span>Navbar — <code>Navbar.astro</code></h2>
+
+      <div class="comp-wrap">
+        <div class="comp-header">Navbar variants <span class="comp-tag">Navbar.astro</span></div>
+        <div class="comp-body" style="padding:0;">
+          <div class="state-label" style="padding:0 12px;">Landing — Accueil active</div>
+          <div class="nav-comp">
+            <span class="nav-logo">TPE — IA</span>
+            <div class="nav-right">
+              <div class="nav-links">
+                <span class="nav-link active">Accueil</span><span class="nav-link">Rapport</span><span class="nav-link">Annexes</span>
+              </div>
+              <div class="nav-ctrls">
+                <span class="nav-ctrl on">FR</span><span class="nav-ctrl" style="opacity:0.35;">EN</span>
+                <span class="nav-ctrl">◑</span><span class="nav-ctrl" style="color:#D97757;border-color:rgba(217,119,87,0.3);">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <div class="state-label" style="padding:0 12px;">Report — Rapport active</div>
+          <div class="nav-comp">
+            <span class="nav-logo">TPE — IA</span>
+            <div class="nav-right">
+              <div class="nav-links">
+                <span class="nav-link">Accueil</span><span class="nav-link active">Rapport</span><span class="nav-link">Annexes</span>
+              </div>
+              <div class="nav-ctrls">
+                <span class="nav-ctrl on">FR</span><span class="nav-ctrl" style="opacity:0.35;">EN</span>
+                <span class="nav-ctrl">◑</span><span class="nav-ctrl" style="color:#D97757;border-color:rgba(217,119,87,0.3);">↗ Site original</span>
+              </div>
+            </div>
+          </div>
+          <div class="state-label" style="padding:0 12px;">Hover state on inactive link</div>
+          <div class="nav-comp" style="border-bottom:none;">
+            <span class="nav-logo">TPE — IA</span>
+            <div class="nav-right">
+              <div class="nav-links">
+                <span class="nav-link active">Accueil</span>
+                <span class="nav-link hover">Rapport ← hover</span>
+                <span class="nav-link">Annexes</span>
+              </div>
+              <div class="nav-ctrls">
+                <span class="nav-ctrl on">FR</span><span class="nav-ctrl" style="opacity:0.35;">EN</span>
+                <span class="nav-ctrl">◑</span><span class="nav-ctrl" style="color:#D97757;border-color:rgba(217,119,87,0.3);">↗</span>
+              </div>
+            </div>
+          </div>
+          <!-- Mobile variant -->
+          <div class="state-label" style="padding:0 12px;">Mobile — Report active (below md: breakpoint)</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:none;">
+            <span style="font-size:10px;font-weight:700;font-family:'Libre Baskerville',Georgia,serif;color:var(--ink);">TPE — IA</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="display:flex;gap:3px;align-items:center;">
+                <span style="font-size:8px;font-weight:600;color:#D97757;font-family:'Montserrat',sans-serif;">FR</span>
+                <span style="font-size:8px;color:var(--ink);opacity:0.2;">·</span>
+                <span style="font-size:8px;font-weight:600;color:var(--ink);opacity:0.3;font-family:'Montserrat',sans-serif;">EN</span>
+              </div>
+              <span style="font-size:11px;color:var(--ink);opacity:0.5;">◑</span>
+              <div style="display:flex;flex-direction:column;gap:2.5px;cursor:pointer;">
+                <span style="width:13px;height:1.5px;background:var(--ink);opacity:0.55;border-radius:1px;display:block;"></span>
+                <span style="width:13px;height:1.5px;background:var(--ink);opacity:0.55;border-radius:1px;display:block;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Mobile navbar</strong> shows only: logo · lang toggle · theme toggle · burger. All page links and Site original move into the burger menu. Breakpoint: <code>md:</code> (768px).</div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 11. BURGER MENU COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="burger">
+      <h2 class="doc-section-title"><span class="doc-section-num">11</span>Burger Menu — <code>BurgerMenu.astro</code></h2>
+
+      <div class="burger-row">
+        <div>
+          <p class="sub-label">Landing page</p>
+          <div class="burger-frame">
+            <div class="bm-nav"><span class="bm-logo">TPE — IA</span><span class="bm-x">✕</span></div>
+            <div class="bm-items">
+              <div class="bm-item active-page">Accueil<div class="bm-dot"></div></div>
+              <div class="bm-item inactive">Rapport<div class="bm-dot-placeholder"></div></div>
+              <div class="bm-item inactive" style="border-bottom:none;">Annexes<div class="bm-dot-placeholder"></div></div>
+            </div>
+            <div class="bm-bottom">
+              <div class="bm-util-item"><div class="bm-lang-wrap"><span class="bm-lang on">FR</span><span class="bm-lang-sep">·</span><span class="bm-lang off">EN</span></div></div>
+              <div class="bm-util-item"><span class="bm-theme">◑</span></div>
+              <div class="bm-util-item"><span class="bm-legacy-pill">↗ Site original</span></div>
+            </div>
+          </div>
+          <p class="ann"><strong>Accueil</strong> active</p>
+        </div>
+        <div>
+          <p class="sub-label">Report page</p>
+          <div class="burger-frame">
+            <div class="bm-nav"><span class="bm-logo">TPE — IA</span><span class="bm-x">✕</span></div>
+            <div class="bm-items">
+              <div class="bm-item inactive">Accueil<div class="bm-dot-placeholder"></div></div>
+              <div class="bm-item active-page">Rapport<div class="bm-dot"></div></div>
+              <div class="bm-item inactive" style="border-bottom:none;">Annexes<div class="bm-dot-placeholder"></div></div>
+            </div>
+            <div class="bm-bottom">
+              <div class="bm-util-item"><div class="bm-lang-wrap"><span class="bm-lang on">FR</span><span class="bm-lang-sep">·</span><span class="bm-lang off">EN</span></div></div>
+              <div class="bm-util-item"><span class="bm-theme">◑</span></div>
+              <div class="bm-util-item"><span class="bm-legacy-pill">↗ Site original</span></div>
+            </div>
+          </div>
+          <p class="ann"><strong>Rapport</strong> active</p>
+        </div>
+        <div>
+          <p class="sub-label">Appendix page</p>
+          <div class="burger-frame">
+            <div class="bm-nav"><span class="bm-logo">TPE — IA</span><span class="bm-x">✕</span></div>
+            <div class="bm-items">
+              <div class="bm-item inactive">Accueil<div class="bm-dot-placeholder"></div></div>
+              <div class="bm-item inactive">Rapport<div class="bm-dot-placeholder"></div></div>
+              <div class="bm-item active-page" style="border-bottom:none;">Annexes<div class="bm-dot"></div></div>
+            </div>
+            <div class="bm-bottom">
+              <div class="bm-util-item"><div class="bm-lang-wrap"><span class="bm-lang on">FR</span><span class="bm-lang-sep">·</span><span class="bm-lang off">EN</span></div></div>
+              <div class="bm-util-item"><span class="bm-theme">◑</span></div>
+              <div class="bm-util-item"><span class="bm-legacy-pill">↗ Site original</span></div>
+            </div>
+          </div>
+          <p class="ann"><strong>Annexes</strong> active</p>
+        </div>
+      </div>
+
+      <div class="callout-grid">
+        <div class="callout">
+          <div class="callout-title"><div class="callout-dot-sm"></div>Active indicator</div>
+          <div class="callout-body">Terracotta label (left) + terracotta dot (right). Dot placeholder on inactive rows prevents label shift. Consistent with ToC drawer pattern.</div>
+        </div>
+        <div class="callout">
+          <div class="callout-title"><div class="callout-dot-sm"></div>Utility bar — three equal zones</div>
+          <div class="callout-body">Lang toggle left · theme toggle centre · legacy pill right. Each in a <code>flex: 1</code> zone — evenly distributed. Legacy pill distinguishes the external link from page navigation.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 12. TOC SIDEBAR COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="toc-sidebar">
+      <h2 class="doc-section-title"><span class="doc-section-num">12</span>ToC Sidebar — <code>TocSidebar.astro</code></h2>
+
+      <p style="font-size:12px;line-height:1.7;color:rgba(23,24,28,0.6);margin-bottom:14px;font-family:'Montserrat',sans-serif;">Desktop and tablet only — <code>hidden md:flex</code>. Sticky in the left <code>1fr</code> margin. No background, no border — blends into the page. Active item detected via <code>IntersectionObserver</code>.</p>
+
+      <div class="wf-grid-equal">
+        <div>
+          <p class="sub-label">Report — Ch. II active</p>
+          <div class="comp-wrap">
+            <div class="comp-header">TocSidebar — Report <span class="comp-tag">TocSidebar.astro</span></div>
+            <div class="comp-body" style="padding:12px 16px;">
+              <div style="font-size:7px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:rgba(23,24,28,0.4);font-family:'Montserrat',sans-serif;margin-bottom:8px;padding-bottom:5px;border-bottom:0.5px solid rgba(23,24,28,0.1);">Table des matières</div>
+              <div class="d-toc-item"><span class="d-toc-num">I</span><span class="d-toc-text">Histoire de l'IA</span></div>
+              <div class="d-toc-item active"><span class="d-toc-num">II</span><span class="d-toc-text">Fondements algorithmiques</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">III</span><span class="d-toc-text">Test de Turing</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">IV</span><span class="d-toc-text">Éthique</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">V</span><span class="d-toc-text">Lois d'Asimov</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">VI</span><span class="d-toc-text">Enjeux contemporains</span></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="sub-label">Appendix — B active</p>
+          <div class="comp-wrap">
+            <div class="comp-header">TocSidebar — Appendix <span class="comp-tag">TocSidebar.astro</span></div>
+            <div class="comp-body" style="padding:12px 16px;">
+              <div style="font-size:7px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:rgba(23,24,28,0.4);font-family:'Montserrat',sans-serif;margin-bottom:8px;padding-bottom:5px;border-bottom:0.5px solid rgba(23,24,28,0.1);">Annexes</div>
+              <div class="d-toc-item"><span class="d-toc-num">A</span><span class="d-toc-text">Biographies</span></div>
+              <div class="d-toc-item active"><span class="d-toc-num">B</span><span class="d-toc-text">Bibliographie</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">C</span><span class="d-toc-text">Lois d'Asimov</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">D</span><span class="d-toc-text">Remerciements</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">E</span><span class="d-toc-text">Synthèse — Chun</span></div>
+              <div class="d-toc-item"><span class="d-toc-num">F</span><span class="d-toc-text">Synthèse — Yannis</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table style="margin-top:14px;">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Position</td><td><code>position: sticky; top: 1rem</code></td></tr>
+        <tr><td>Visibility</td><td><code>hidden md:flex</code> — desktop/tablet only</td></tr>
+        <tr><td>Width</td><td><code>max-width: 120px</code> desktop · <code>100px</code> tablet</td></tr>
+        <tr><td>Background</td><td>None — blends into page background</td></tr>
+        <tr><td>Chapter section/subsection</td><td><code>padding-left</code> indentation depending on heading level</td></tr>
+        <tr><td>Active detection</td><td><code>IntersectionObserver</code> on chapter/section headings, <code>threshold: 0.3</code></td></tr>
+        <tr><td>Active style</td><td><code>background: rgba(217,119,87,0.07)</code> + <code>2px #D97757</code> left-bar via <code>::before</code></td></tr>
+        <tr><td>Inactive style</td><td><code>opacity: 0.4</code> on text and number</td></tr>
+        <tr><td>Report labels</td><td>Roman numerals I · II · III · IV · V · VI</td></tr>
+        <tr><td>Appendix labels</td><td>Letters A · B · C · D · E · F</td></tr>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 13. TOC DRAWER COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="toc-drawer">
+      <h2 class="doc-section-title"><span class="doc-section-num">13</span>ToC Drawer — <code>TocDrawer.astro</code></h2>
+
+      <p style="font-size:12px;line-height:1.7;color:rgba(23,24,28,0.6);margin-bottom:14px;font-family:'Montserrat',sans-serif;">Mobile only — <code>flex md:hidden</code>. Slides up from bottom when the centre label of <code>BottomTocBar</code> is tapped. Two modes: chapters (Report) and sections (Appendix).</p>
+
+      <div class="wf-grid-equal">
+        <div>
+          <p class="sub-label">Report mode — Ch. II active</p>
+          <div class="comp-wrap" style="overflow:hidden;">
+            <div class="comp-header">TocDrawer — Report <span class="comp-tag">TocDrawer.astro</span></div>
+            <div class="drawer-overlay" style="position:relative;border-radius:0;border-top:none;">
+              <div class="drawer-handle"></div>
+              <div class="drawer-title">Chapitres</div>
+              <div class="drawer-item"><span class="drawer-num">I</span><span class="drawer-text">Histoire de l'IA</span></div>
+              <div class="drawer-item active"><span class="drawer-num">II</span><span class="drawer-text">Fondements algorithmiques</span><div class="drawer-dot"></div></div>
+              <div class="drawer-item"><span class="drawer-num">III</span><span class="drawer-text">Test de Turing</span></div>
+              <div class="drawer-item"><span class="drawer-num">IV</span><span class="drawer-text">Éthique</span></div>
+              <div class="drawer-item"><span class="drawer-num">V</span><span class="drawer-text">Lois d'Asimov</span></div>
+              <div class="drawer-item"><span class="drawer-num">VI</span><span class="drawer-text">Enjeux contemporains</span></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="sub-label">Appendix mode — B active</p>
+          <div class="comp-wrap" style="overflow:hidden;">
+            <div class="comp-header">TocDrawer — Appendix <span class="comp-tag">TocDrawer.astro</span></div>
+            <div class="drawer-overlay" style="position:relative;border-radius:0;border-top:none;">
+              <div class="drawer-handle"></div>
+              <div class="drawer-title">Annexes</div>
+              <div class="drawer-item"><span class="drawer-num">A</span><span class="drawer-text">Biographies</span></div>
+              <div class="drawer-item active"><span class="drawer-num">B</span><span class="drawer-text">Bibliographie</span><div class="drawer-dot"></div></div>
+              <div class="drawer-item"><span class="drawer-num">C</span><span class="drawer-text">Lois d'Asimov</span></div>
+              <div class="drawer-item"><span class="drawer-num">D</span><span class="drawer-text">Remerciements</span></div>
+              <div class="drawer-item"><span class="drawer-num">E</span><span class="drawer-text">Synthèse — Chun</span></div>
+              <div class="drawer-item"><span class="drawer-num">F</span><span class="drawer-text">Synthèse — Yannis</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table style="margin-top:14px;">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Trigger</td><td>Tap centre label of <code>BottomTocBar</code></td></tr>
+        <tr><td>Dismiss</td><td>Tap outside drawer or select a section</td></tr>
+        <tr><td>Active item</td><td>Terracotta label (left) + terracotta dot (right)</td></tr>
+        <tr><td>Inactive items</td><td>Muted — <code>opacity: 0.5</code> on text and number</td></tr>
+        <tr><td>Report labels</td><td>Roman numerals I–VI</td></tr>
+        <tr><td>Appendix labels</td><td>Letters A–F</td></tr>
+        <tr><td>Chapter section/subsection</td><td>No indentation regardless of heading level</td></tr>
+        <tr><td>Animation</td><td>Slides up from bottom — <code>transform: translateY</code> + <code>transition: 0.3s ease</code></td></tr>
+      </table>
+      <div class="note">The handle at the top of the drawer is a visual affordance only — the dismiss gesture is tapping outside, not dragging. This keeps the implementation simple while communicating the bottom-sheet pattern.</div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 14. BOTTOM TOC BAR COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="bottombar">
+      <h2 class="doc-section-title"><span class="doc-section-num">14</span>Bottom ToC Bar — <code>BottomTocBar.astro</code></h2>
+
+      <div class="comp-wrap">
+        <div class="comp-header">States <span class="comp-tag">BottomTocBar.astro</span></div>
+        <div class="comp-body">
+          <div class="state-label">Report — Ch. II active</div>
+          <div class="bar-comp">
+            <div class="bar-arrow">‹</div>
+            <div class="bar-center"><div class="bar-dot"></div><span class="bar-label">II — Fondements algorithmiques</span></div>
+            <div class="bar-arrow">›</div>
+          </div>
+          <div class="state-label">Appendix — B active</div>
+          <div class="bar-comp">
+            <div class="bar-arrow">‹</div>
+            <div class="bar-center"><div class="bar-dot"></div><span class="bar-label">B — Bibliographie</span></div>
+            <div class="bar-arrow">›</div>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Scroll behaviour:</strong> hides on scroll down, reappears on scroll up — <code>transition: transform 0.3s ease</code>. Prev/next arrows use <code>ph:caret-left</code> / <code>ph:caret-right</code>. Centre label tap opens <code>TocDrawer.astro</code>.</div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 15. PROGRESS BAR COMPONENT -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="progressbar">
+      <h2 class="doc-section-title"><span class="doc-section-num">15</span>Progress Bar — <code>ProgressBar.astro</code></h2>
+
+      <div class="comp-wrap">
+        <div class="comp-header">States <span class="comp-tag">ProgressBar.astro</span></div>
+        <div class="comp-body">
+          <div class="state-label">38% read</div>
+          <div class="pb-track"><div class="pb-fill" style="width:38%"></div></div>
+          <div class="state-label">72% read</div>
+          <div class="pb-track"><div class="pb-fill" style="width:72%"></div></div>
+          <div class="state-label">100% read (end of document)</div>
+          <div class="pb-track"><div class="pb-fill" style="width:100%"></div></div>
+        </div>
+      </div>
+      <table style="font-size:11px;margin-top:12px;">
+            <tr><th>Property</th><th>Value</th></tr>
+            <tr><td>Height</td><td>2.5px desktop/tablet · 2px mobile</td></tr>
+            <tr><td>Color</td><td><code>#D97757</code> — terracotta, unchanged in dark mode</td></tr>
+            <tr><td>Position</td><td>Immediately below the navbar — never above it</td></tr>
+            <tr><td>Width logic</td><td><code>scrollY / (documentHeight - viewportHeight) × 100</code></td></tr>
+            <tr><td>Update</td><td>Throttled via <code>requestAnimationFrame</code></td></tr>
+            <tr><td>Visibility</td><td>Always visible — not hidden on scroll (unlike navbars)</td></tr>
+            <tr><td>Pages</td><td>Report only — absent on Landing and Appendix</td></tr>
+      </table>
+    </section> 
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 16. FOOTER -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="footer">
+      <h2 class="doc-section-title"><span class="doc-section-num">16</span>Footer — <code>Footer.astro</code></h2>
+
+      <div class="comp-wrap">
+        <div class="comp-header">Footer — light &amp; dark <span class="comp-tag">Footer.astro</span></div>
+        <div class="comp-body" style="padding:0;">
+          <div class="d-footer" style="background:#F5F4ED;">
+            <span class="d-footer-copy">© 2026 Chun Kiet Huynh</span>
+            <svg class="gh-svg" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Never sticky or fixed.</strong> Natural document flow — visible only after scrolling past all content. GitHub mark: SVG icon only, no text label.</div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 17. CTA BUTTONS -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="cta">
+      <h2 class="doc-section-title"><span class="doc-section-num">17</span>CTA Buttons — <code>CTAButton.astro</code></h2>
+
+      <div class="comp-wrap">
+        <div class="comp-header">Button variants <span class="comp-tag">CTAButton.astro</span></div>
+        <div class="comp-body">
+          <div class="state-label">Default states</div>
+          <div class="cta-row">
+            <span class="cta-btn cta-primary">Lire le rapport →</span>
+            <span class="cta-btn cta-legacy">↗ Site original</span>
+            <span class="cta-btn cta-ghost">Voir les annexes</span>
+          </div>
+          <div class="state-label">Hover — primary</div>
+          <div class="cta-row">
+            <span class="cta-btn cta-hover">Lire le rapport →</span>
+          </div>
+        </div>
+      </div>
+
+      <table style="margin-top:12px;">
+        <tr><th>Variant</th><th>Background</th><th>Text</th><th>Border</th><th>Usage</th></tr>
+        <tr><td><code>primary</code></td><td><code>#17181C</code></td><td><code>#F5F4ED</code></td><td>none</td><td>Main CTA — Lire le rapport</td></tr>
+        <tr><td><code>legacy</code></td><td><code>rgba(#D97757, 0.05)</code></td><td><code>#D97757</code></td><td><code>rgba(#D97757, 0.35)</code></td><td>Site original link</td></tr>
+        <tr><td><code>ghost</code></td><td>transparent</td><td>muted</td><td><code>color-border</code></td><td>Secondary — unused in hero</td></tr>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 18. INTERACTIONS -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="interactions">
+      <h2 class="doc-section-title"><span class="doc-section-num">18</span>Interaction & Behaviour</h2>
+
+      <table>
+        <tr><th>Behaviour</th><th>Implementation</th></tr>
+        <tr><td>Reading progress bar</td><td><code>scrollY / (documentHeight - viewportHeight) * 100</code> — throttled with <code>requestAnimationFrame</code></td></tr>
+        <tr><td>ToC active state</td><td><code>IntersectionObserver</code> on each chapter/section heading — <code>threshold: 0.3</code></td></tr>
+        <tr><td>Navbar scroll-hide</td><td>Track <code>scrollY</code> delta — add <code>.hidden</code> on scroll down, remove on scroll up. <code>transition: transform 0.3s ease</code></td></tr>
+        <tr><td>Bottom bar scroll-hide</td><td>Same as navbar — both bars move together</td></tr>
+        <tr><td>Progress bar (scroll-hide)</td><td>Always visible — not hidden on scroll</td></tr>
+        <tr><td>ToC drawer</td><td>Tap centre label → slides up. Tap outside or select section → slides down</td></tr>
+        <tr><td>View Transitions</td><td><code>&lt;ViewTransitions /&gt;</code> in <code>MainLayout.astro</code> — fade between pages</td></tr>
+        <tr><td>Theme toggle</td><td><code>localStorage</code> preference + <code>document.documentElement.classList</code></td></tr>
+        <tr><td>Dark mode CSS</td><td><code>color-scheme: light dark</code> + <code>light-dark()</code> function</td></tr>
+        <tr><td>Chapter header anchor</td><td>Clicking a chapter heading (I, II, III, IV) in the ToC scrolls to <code>#i</code>, <code>#ii</code>, etc. — the chapter's own <code>h2</code> anchor. It does <strong>not</strong> redirect to the first section. The chapter h2 must exist in the DOM with its own ID.</td></tr>
+        <tr><td>ToC sidebar — always open</td><td>No expand/collapse logic. All 22 anchors are always visible. IntersectionObserver watches all headings. Active item = deepest heading currently in viewport.</td></tr>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- 19. i18n ROUTES -->
+    <!-- ══════════════════════════════════════════ -->
+    <section class="doc-section" id="i18n">
+      <h2 class="doc-section-title"><span class="doc-section-num">19</span>i18n Routes</h2>
+
+      <table>
+        <tr><th>Page</th><th>French (default)</th><th>English</th></tr>
+        <tr><td>Landing</td><td><code>/fr/</code></td><td><code>/en/</code></td></tr>
+        <tr><td>Report</td><td><code>/fr/report/</code></td><td><code>/en/report/</code></td></tr>
+        <tr><td>Appendix</td><td><code>/fr/appendix/</code></td><td><code>/en/appendix/</code></td></tr>
+      </table>
+
+      <div class="note" style="margin-top:12px;"><strong>Active language:</strong> terracotta in all toggle positions (navbar, burger menu utility bar). Inactive: 30% opacity — no border, no background. Both locales use explicit prefixes (<code>prefixDefaultLocale: true</code>). Route slugs are always in English — <code>/fr/report/</code> and <code>/en/report/</code>. This keeps URLs predictable, avoids translation drift between locales, and simplifies Astro's routing config.</div>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

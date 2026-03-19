@@ -40,18 +40,6 @@ npm install
 npm run dev    # → http://localhost:4321
 ```
 
-## 📐 Pages
+## 📄 Design Documentation
 
-| Route | Description |
-|---|---|
-| `/` | Landing page |
-| `/report` | Full scrolling research report |
-| `/appendix` | Biographies, bibliography, etc |
-
-## 🌍 i18n
-
-Default locale is **French** (`/fr/`). English available at `/en/`.
-
-## 📊 Project Status
-
-> 🔨 Active development — Phase 1 (Project Setup) complete.
+The UI/UX design system reference is in [`docs/DESIGN.html`](docs/DESIGN.html)
