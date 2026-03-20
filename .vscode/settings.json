@@ -1,0 +1,32 @@
+{
+  // Tailwind & CSS
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.includeLanguages": {
+    "astro": "html"
+  },
+  "files.associations": {
+    "*.astro": "astro",
+    "*.css": "tailwindcss"
+  },
+  "css.validate": false,
+
+  // Formatter
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.documentSelectors": ["**/*.astro"],
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ESLint
+  "eslint.validate": ["javascript", "typescript", "javascriptreact", "typescriptreact", "astro"],
+
+  "editor.quickSuggestions": {
+    "strings": true,
+    "other": true,
+    "comments": false
+  }
+}

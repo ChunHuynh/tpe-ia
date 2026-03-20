@@ -1,0 +1,97 @@
+/* ┌─────────────────────────────────────────────────────────────────┐
+   │  tpe-ia - Global Design System                                  │
+   │  Single source of truth for all tokens, typography, and themes  │
+   └─────────────────────────────────────────────────────────────────┘ */
+
+/* ── Tailwind v4 entry point + source exclusion ──────────────────── */
+@import 'tailwindcss';
+@source not '../public/legacy';
+
+/* ── Typography plugin ───────────────────────────────────────────── */
+@plugin '@tailwindcss/typography';
+
+/* ── Dark mode strategy: .dark class on <html> ───────────────────── */
+/*    Toggled by JS, applies color-scheme: dark                       */
+/*    light-dark() reads color-scheme, OS theme on first visit        */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Fontsource — self-hosted fonts ──────────────────────────────── */
+@import '@fontsource/libre-baskerville/400.css';
+@import '@fontsource/libre-baskerville/700.css';
+@import '@fontsource/libre-baskerville/400-italic.css';
+@import '@fontsource/montserrat/400.css';
+@import '@fontsource/montserrat/500.css';
+@import '@fontsource/montserrat/600.css';
+
+/* ── Design tokens + Tailwind class generation utility ───────────── */
+@theme {
+  /* Colours — light-dark() switches on color-scheme set below */
+  --color-bg: light-dark(#f5f4ed, #262624);
+  --color-ink: light-dark(#17181c, #faf9f5);
+  --color-accent: #d97757;
+  --color-muted: light-dark(rgba(23, 24, 28, 0.45), rgba(209, 209, 209, 0.45));
+  --color-border: light-dark(rgba(23, 24, 28, 0.12), rgba(255, 255, 255, 0.1));
+  --color-surface: light-dark(rgba(23, 24, 28, 0.04), rgba(255, 255, 255, 0.04));
+  --color-surface2: light-dark(rgba(23, 24, 28, 0.07), rgba(255, 255, 255, 0.07));
+
+  /* Fonts */
+  --font-serif: 'Libre Baskerville', Georgia, serif;
+  --font-ui: 'Montserrat', system-ui, sans-serif;
+
+  /* Type scale */
+  --text-display: 2rem; /* 32px · H1 hero */
+  --text-chapter: 1.5rem; /* 24px · H2 chapter */
+  --text-section: 1.125rem; /* 18px · H3 section */
+  --text-body: 1rem; /* 16px · prose */
+  --text-ui: 0.8125rem; /* 13px · nav, labels */
+  --text-caption: 0.75rem; /* 12px · bylines, meta */
+
+  /* Shared border radius */
+  --radius: 0.625rem; /* 10px */
+}
+
+/* ── Dark mode: color-scheme ─────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  color-scheme: light dark; /* OS preference until preference is set */
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* ── Prose plugin ────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --tw-prose-body: var(--color-ink);
+    --tw-prose-headings: var(--color-ink);
+    --tw-prose-lead: var(--color-muted);
+    --tw-prose-links: var(--color-accent);
+    --tw-prose-bold: var(--color-ink);
+    --tw-prose-bullets: var(--color-accent);
+    --tw-prose-hr: var(--color-border);
+    --tw-prose-quote-borders: var(--color-accent);
+    --tw-prose-captions: var(--color-muted);
+    --tw-prose-pre-bg: var(--color-surface);
+    --tw-prose-th-borders: var(--color-border);
+    --tw-prose-td-borders: var(--color-border);
+  }
+}
+
+/* ── Global defaults ───────────────────────────── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Focus styles — accessibility ─────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

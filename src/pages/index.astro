@@ -1,17 +1,22 @@
 ---
+import '../styles/global.css';
 const base = import.meta.env.BASE_URL;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
-		<link rel="icon" href={`${base}/favicon.ico`} />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="icon" href={`${base}/favicon.ico`} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>TPE - IA</title>
+  </head>
+  <body class="min-h-screen p-8">
+    <h1 class="font-serif text-display text-ink">L'Intelligence Artificielle</h1>
+    <p class="mt-2 font-ui text-ui tracking-widest text-muted uppercase">
+      Travaux Personnels Encadrés · 2014
+    </p>
+    <div class="mt-4 h-0.5 w-10 rounded bg-accent"></div>
+  </body>
 </html>
